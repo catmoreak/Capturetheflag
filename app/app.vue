@@ -1,3 +1,4 @@
+
 <template>
   <div class="hacker-theme">
     <canvas ref="threeCanvas" class="three-canvas"></canvas>
@@ -72,11 +73,16 @@ let composer: EffectComposer
 const clock = new THREE.Clock()
 const mouse = new THREE.Vector2()
 const lookAtTarget = new THREE.Vector3()
+let cursorLight: THREE.PointLight;
+let raycaster: THREE.Raycaster;
+let mousePlane: THREE.Mesh;
 
 // --- Animation variables ---
 const packets: any[] = [];
 const cardStates: any[] = [];
 const collisionEffects: any[] = [];
+let cursorParticles: THREE.Points;
+let cursorParticleSystem: any[] = [];
 const GRID_SIZE = 400;
 
 onMounted(() => {
@@ -92,6 +98,20 @@ onMounted(() => {
   renderer.setClearColor(0x050a14, 1)
   renderer.toneMapping = THREE.ReinhardToneMapping;
   scene.add(new THREE.AmbientLight(0x404040, 0.5));
+
+  // --- Mouse Cursor Light ---
+  cursorLight = new THREE.PointLight(0x00ff00, 15, 80, 2);
+  scene.add(cursorLight);
+  raycaster = new THREE.Raycaster();
+  mousePlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(GRID_SIZE, GRID_SIZE),
+      new THREE.MeshBasicMaterial({visible: false})
+  );
+  mousePlane.rotation.x = -Math.PI / 2;
+  scene.add(mousePlane);
+
+  // --- Cursor Particle Trail ---
+  setupCursorParticles();
 
   // --- Background Grid and Packets ---
   const gridHelper = new THREE.GridHelper(GRID_SIZE, 20, 0x00ff88, 0xff0000);
@@ -192,6 +212,66 @@ function triggerCollision() {
         effect.life = 0;
         effect.visible = true;
     }
+}
+
+function setupCursorParticles() {
+    const PARTICLE_COUNT = 300;
+    const geom = new THREE.BufferGeometry();
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const colors = new Float32Array(PARTICLE_COUNT * 3);
+    const sizes = new Float32Array(PARTICLE_COUNT);
+
+    for(let i=0; i < PARTICLE_COUNT; i++) {
+        cursorParticleSystem.push({ life: 0, velocity: new THREE.Vector3() });
+    }
+
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geom.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const mat = new THREE.PointsMaterial({ size: 0.8, blending: THREE.AdditiveBlending, transparent: true, vertexColors: true });
+    cursorParticles = new THREE.Points(geom, mat);
+    scene.add(cursorParticles);
+}
+
+function updateCursorParticles(delta: number, emitterPos: THREE.Vector3) {
+    const positions = cursorParticles.geometry.getAttribute('position').array as Float32Array;
+    const colors = cursorParticles.geometry.getAttribute('color').array as Float32Array;
+    const sizes = cursorParticles.geometry.getAttribute('size').array as Float32Array;
+
+    let particlesToSpawn = 3;
+
+    for (let i = 0; i < cursorParticleSystem.length; i++) {
+        const p = cursorParticleSystem[i];
+        if (p.life > 0) {
+            p.life -= delta;
+            if (p.life <= 0) {
+                sizes[i] = 0;
+            } else {
+                p.velocity.y -= 0.1 * delta; // gravity
+                positions[i*3] += p.velocity.x * delta;
+                positions[i*3+1] += p.velocity.y * delta;
+                positions[i*3+2] += p.velocity.z * delta;
+                sizes[i] = p.life / 1.0 * 1.5; // Fade size
+            }
+        } else if (particlesToSpawn > 0) {
+            p.life = 1.0; // 1 second life
+            p.velocity.set((Math.random()-0.5)*2, Math.random()*2, (Math.random()-0.5)*2);
+            positions[i*3] = emitterPos.x;
+            positions[i*3+1] = emitterPos.y;
+            positions[i*3+2] = emitterPos.z;
+            
+            const color = Math.random() > 0.5 ? new THREE.Color(0xff0000) : new THREE.Color(0xffff00);
+            colors[i*3] = color.r;
+            colors[i*3+1] = color.g;
+            colors[i*3+2] = color.b;
+
+            particlesToSpawn--;
+        }
+    }
+    (cursorParticles.geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
+    (cursorParticles.geometry.getAttribute('color') as THREE.BufferAttribute).needsUpdate = true;
+    (cursorParticles.geometry.getAttribute('size') as THREE.BufferAttribute).needsUpdate = true;
 }
 
 // --- Card Animation Functions ---
@@ -311,6 +391,15 @@ const animate = () => {
   camera.position.y = 50 + Math.sin(time * 0.2) * 15;
 
   // Mouse control
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(mousePlane);
+  if (intersects.length > 0) {
+      const intersectPoint = intersects[0].point;
+      cursorLight.position.copy(intersectPoint);
+      cursorLight.position.y = 10;
+      updateCursorParticles(delta, intersectPoint);
+  }
+
   lookAtTarget.x = (mouse.x * 40);
   lookAtTarget.y = 20 + (-mouse.y * 20);
   lookAtTarget.z = 0;
@@ -356,6 +445,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  cursor: none;
 }
 
 .hacker-theme {
