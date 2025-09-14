@@ -1,4 +1,3 @@
-
 <template>
   <div class="hacker-theme">
     <canvas ref="threeCanvas" class="three-canvas"></canvas>
@@ -128,7 +127,7 @@ onMounted(() => {
 
   // --- Post-processing ---
   const renderScene = new RenderPass(scene, camera);
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.5, 0.85);
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 1.0, 0.85);
   composer = new EffectComposer(renderer);
   composer.addPass(renderScene);
   composer.addPass(bloomPass);
@@ -166,9 +165,9 @@ function createParticleSystem(color: number, count: number, size: number, speed:
 }
 
 function createCollisionEffect() {
-    const redFire = createParticleSystem(0xff0000, 100, 0.8, 6);
-    const yellowFire = createParticleSystem(0xffff00, 100, 0.7, 4);
-    const whiteSmoke = createParticleSystem(0xffffff, 150, 1.0, 2);
+    const redFire = createParticleSystem(0xff0000, 300, 1.5, 12);
+    const yellowFire = createParticleSystem(0xffff00, 300, 1.2, 8);
+    const whiteSmoke = createParticleSystem(0xffffff, 400, 1.8, 4);
     return { redFire, yellowFire, whiteSmoke, life: 0, visible: false };
 }
 
@@ -249,7 +248,7 @@ const animate = () => {
   });
 
   // --- Collision Logic ---
-  if (Math.random() < 0.025) { // Approx 1 in 40 frames
+  if (Math.random() < 0.01) { // Reduced frequency
       triggerCollision();
   }
 
