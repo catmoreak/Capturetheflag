@@ -7,10 +7,10 @@
         <div class="container">
           <div class="logo">CTF_Platform</div>
           <nav>
-            <a href="#">Home</a>
-            <a href="#">Challenges</a>
-            <a href="#">Leaderboard</a>
-            <a href="#" class="btn btn-outline">Login</a>
+            <NuxtLink to="/">Home</NuxtLink>
+            <NuxtLink to="/challenges">Challenges</NuxtLink>
+            <NuxtLink to="/leaderboard">Leaderboard</NuxtLink>
+            <NuxtLink to="/login" class="btn btn-outline">Login</NuxtLink>
           </nav>
         </div>
       </header>
@@ -590,5 +590,11 @@ nav a:hover {
   padding: 2rem 0;
   background-color: transparent;
   color: var(--dark-text);
+}
+</style>
+
+<style>
+body, * {
+  cursor: auto !important;
 }
 </style>
