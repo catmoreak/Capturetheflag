@@ -58,14 +58,12 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-// --- Refs for DOM elements ---
 const threeCanvas = ref<HTMLCanvasElement | null>(null)
 const contentOverlay = ref<HTMLElement | null>(null)
 const featureCard1 = ref<HTMLElement | null>(null)
 const featureCard2 = ref<HTMLElement | null>(null)
 const featureCard3 = ref<HTMLElement | null>(null)
 
-// --- 3D Scene variables ---
 let renderer: THREE.WebGLRenderer
 let scene: THREE.Scene
 let camera: THREE.PerspectiveCamera
@@ -77,7 +75,6 @@ let cursorLight: THREE.PointLight;
 let raycaster: THREE.Raycaster;
 let mousePlane: THREE.Mesh;
 
-// --- Animation variables ---
 const packets: any[] = [];
 const cardStates: any[] = [];
 const collisionEffects: any[] = [];
@@ -88,7 +85,7 @@ const GRID_SIZE = 400;
 onMounted(() => {
   if (!threeCanvas.value) return
 
-  // --- Basic Scene Setup ---
+  
   scene = new THREE.Scene()
   scene.fog = new THREE.Fog(0x050a14, 150, 350);
   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -99,7 +96,7 @@ onMounted(() => {
   renderer.toneMapping = THREE.ReinhardToneMapping;
   scene.add(new THREE.AmbientLight(0x404040, 0.5));
 
-  // --- Mouse Cursor Light ---
+  
   cursorLight = new THREE.PointLight(0x00ff00, 15, 80, 2);
   scene.add(cursorLight);
   raycaster = new THREE.Raycaster();
@@ -110,10 +107,10 @@ onMounted(() => {
   mousePlane.rotation.x = -Math.PI / 2;
   scene.add(mousePlane);
 
-  // --- Cursor Particle Trail ---
+  
   setupCursorParticles();
 
-  // --- Background Grid and Packets ---
+  
   const gridHelper = new THREE.GridHelper(GRID_SIZE, 20, 0x00ff88, 0xff0000);
   (gridHelper.material as THREE.Material).transparent = true;
   (gridHelper.material as THREE.Material).opacity = 0.1;
@@ -132,33 +129,33 @@ onMounted(() => {
     scene.add(packet);
   }
 
-  // --- Collision Effects Pool ---
+  
   for (let i=0; i<10; i++) {
       const effect = createCollisionEffect();
       collisionEffects.push(effect);
       scene.add(effect.redFire, effect.yellowFire, effect.whiteSmoke);
   }
 
-  // --- Orbital Strike Animations Setup ---
+  
   const cardElements = [featureCard1.value, featureCard2.value, featureCard3.value];
   cardElements.forEach(el => {
     if(el) setupOrbitalStrike(el);
   });
 
-  // --- Post-processing ---
+  
   const renderScene = new RenderPass(scene, camera);
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.5, 1.0, 0.85);
   composer = new EffectComposer(renderer);
   composer.addPass(renderScene);
   composer.addPass(bloomPass);
 
-  // --- Event Listeners and Final Setup ---
+  
   window.addEventListener('resize', onWindowResize)
   window.addEventListener('mousemove', onMouseMove)
   contentOverlay.value?.addEventListener('scroll', handleScroll);
 
   animate()
-  handleScroll(); // Initial check
+  handleScroll();
 })
 
 onUnmounted(() => {
@@ -232,7 +229,7 @@ function setupCursorParticles() {
     const mat = new THREE.PointsMaterial({ size: 0.8, blending: THREE.AdditiveBlending, transparent: true, vertexColors: true });
     cursorParticles = new THREE.Points(geom, mat);
     scene.add(cursorParticles);
-}
+}   
 
 function updateCursorParticles(delta: number, emitterPos: THREE.Vector3) {
     const positions = cursorParticles.geometry.getAttribute('position').array as Float32Array;
@@ -274,7 +271,7 @@ function updateCursorParticles(delta: number, emitterPos: THREE.Vector3) {
     (cursorParticles.geometry.getAttribute('size') as THREE.BufferAttribute).needsUpdate = true;
 }
 
-// --- Card Animation Functions ---
+ 
 function setupOrbitalStrike(el: HTMLElement) {
     const worldPos = get3DPositionForElement(el);
     const beamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
@@ -314,20 +311,20 @@ function handleScroll() {
     });
 }
 
-// --- Main Animation Loop ---
+ 
 const animate = () => {
   requestAnimationFrame(animate)
   const delta = clock.getDelta();
   const time = clock.getElapsedTime();
 
-  // Animate background packets
+  
   packets.forEach(p => {
     p.position.z += p.userData.velocity * 60 * delta;
     if (p.userData.velocity > 0 && p.position.z > GRID_SIZE / 2) p.position.z = -GRID_SIZE / 2;
     if (p.userData.velocity < 0 && p.position.z < -GRID_SIZE / 2) p.position.z = GRID_SIZE / 2;
   });
 
-  // --- Collision Logic ---
+  
   if (Math.random() < 0.01) { // Reduced frequency
       triggerCollision();
   }
@@ -352,7 +349,7 @@ const animate = () => {
       }
   });
 
-  // Animate card strikes
+  
   cardStates.forEach(state => {
       if (state.status === 'beam_incoming') {
           state.progress += delta / 0.2;
@@ -385,12 +382,12 @@ const animate = () => {
       }
   });
 
-  // Animate Camera
+  
   camera.position.x = Math.sin(time * 0.1) * 90;
   camera.position.z = 130 + Math.cos(time * 0.12) * 60;
   camera.position.y = 50 + Math.sin(time * 0.2) * 15;
 
-  // Mouse control
+  
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(mousePlane);
   if (intersects.length > 0) {
@@ -408,7 +405,7 @@ const animate = () => {
   composer.render();
 }
 
-// --- Event Handlers ---
+ 
 const onWindowResize = () => {
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -473,7 +470,7 @@ body {
   margin: 0 auto;
 }
 
-/* Header */
+ 
 .main-header {
   background: transparent;
   padding: 1.5rem 0;
@@ -527,7 +524,7 @@ nav a:hover {
     box-shadow: 0 0 15px var(--primary-color);
 }
 
-/* Hero Section */
+ 
 .hero {
   text-align: center;
   padding: 12rem 0 8rem 0;
@@ -554,7 +551,7 @@ nav a:hover {
   line-height: 1.6;
 }
 
-/* Features Section */
+ 
 .features {
   padding: 4rem 0 8rem 0;
 }
@@ -587,7 +584,7 @@ nav a:hover {
   color: var(--primary-color);
 }
 
-/* Footer */
+ 
 .main-footer {
   text-align: center;
   padding: 2rem 0;
