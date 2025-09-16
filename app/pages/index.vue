@@ -10,7 +10,7 @@
             <NuxtLink to="/">Home</NuxtLink>
             <NuxtLink to="/challenges">Challenges</NuxtLink>
             <!-- <NuxtLink to="/leaderboard">Leaderboard</NuxtLink> -->
-            <NuxtLink to="/login" class="btn btn-outline">Login</NuxtLink>
+            <!-- <NuxtLink to="/login" class="btn btn-outline">Login</NuxtLink> -->
           </nav>
         </div>
       </header>
@@ -30,10 +30,10 @@
               <h3>Diverse Challenges</h3>
               <p>From web and mobile to reverse engineering and cryptography.</p>
             </div>
-            <div class="feature-card" ref="featureCard2">
+            <!-- <div class="feature-card" ref="featureCard2">
               <h3>Live Leaderboard</h3>
               <p>Track your progress and see how you stack up against the competition in real-time.</p>
-            </div>
+            </div> -->
             <div class="feature-card" ref="featureCard3">
               <h3>Community & Learning</h3>
               <p>Join a vibrant community and sharpen your skills in a collaborative environment.</p>
@@ -174,21 +174,32 @@ function createParticleSystem(color: number, count: number, size: number, speed:
     const velocities = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
         positions.set([0,0,0], i * 3);
-        const v = new THREE.Vector3().randomDirection().multiplyScalar(Math.random() * speed);
+        const v = new THREE.Vector3(
+            (Math.random() - 0.5) * speed,
+            Math.random() * speed * 1.5, // More upward velocity
+            (Math.random() - 0.5) * speed
+        );
         velocities.set([v.x, v.y, v.z], i * 3);
     }
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geom.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
-    const mat = new THREE.PointsMaterial({ color, size, blending: THREE.AdditiveBlending, transparent: true, opacity: 1.0 });
+    const mat = new THREE.PointsMaterial({ 
+        color, 
+        size, 
+        blending: THREE.AdditiveBlending, 
+        transparent: true, 
+        opacity: 1.0, 
+        sizeAttenuation: true 
+    });
     const points = new THREE.Points(geom, mat);
     points.visible = false;
     return points;
 }
 
 function createCollisionEffect() {
-    const redFire = createParticleSystem(0xff0000, 300, 1.5, 12);
-    const yellowFire = createParticleSystem(0xffff00, 300, 1.2, 8);
-    const whiteSmoke = createParticleSystem(0xffffff, 400, 1.8, 4);
+    const redFire = createParticleSystem(0xff4500, 500, 2, 8);
+    const yellowFire = createParticleSystem(0xffa500, 500, 2.5, 10);
+    const whiteSmoke = createParticleSystem(0xffffff, 800, 2.5, 5);
     return { redFire, yellowFire, whiteSmoke, life: 0, visible: false };
 }
 
@@ -278,19 +289,11 @@ function updateCursorParticles(delta: number, emitterPos: THREE.Vector3) {
  
 function setupOrbitalStrike(el: HTMLElement) {
     const worldPos = get3DPositionForElement(el);
-    const beamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
-    const beamGeom = new THREE.CylinderGeometry(1, 2, 200, 16);
-    const beam = new THREE.Mesh(beamGeom, beamMat);
-    beam.position.set(worldPos.x, 100, worldPos.z);
-    beam.scale.set(1, 0, 1);
-    beam.visible = false;
-    scene.add(beam);
-
     const explosion = createParticleSystem(0xffffff, 200, 0.8, 5);
     explosion.position.copy(worldPos);
     scene.add(explosion);
 
-    cardStates.push({ el, status: 'idle', beam, explosion, progress: 0 });
+    cardStates.push({ el, status: 'idle', explosion, progress: 0 });
 }
 
 function get3DPositionForElement(el: HTMLElement): THREE.Vector3 {
@@ -308,8 +311,12 @@ function handleScroll() {
     cardStates.forEach(state => {
         const rect = state.el.getBoundingClientRect();
         if (rect.top < window.innerHeight * 0.75 && state.status === 'idle') {
-            state.status = 'beam_incoming';
-            state.beam.visible = true;
+            state.status = 'exploding';
+            state.explosion.visible = true;
+            state.explosion.userData.life = 0;
+            const posAttr = state.explosion.geometry.getAttribute('position');
+            for(let i=0; i<posAttr.count; i++) posAttr.setXYZ(i, 0, 0, 0);
+            posAttr.needsUpdate = true;
             state.progress = 0;
         }
     });
@@ -329,7 +336,7 @@ const animate = () => {
   });
 
   
-  if (Math.random() < 0.01) { // Reduced frequency
+  if (Math.random() < 0.001) { // 1 in 50 frames
       triggerCollision();
   }
 
@@ -355,20 +362,7 @@ const animate = () => {
 
   
   cardStates.forEach(state => {
-      if (state.status === 'beam_incoming') {
-          state.progress += delta / 0.2;
-          state.beam.scale.y = Math.sin(state.progress * Math.PI);
-          if (state.progress >= 1) {
-              state.status = 'exploding';
-              state.beam.visible = false;
-              state.explosion.visible = true;
-              state.explosion.userData.life = 0;
-              const posAttr = state.explosion.geometry.getAttribute('position');
-              for(let i=0; i<posAttr.count; i++) posAttr.setXYZ(i, 0, 0, 0);
-              posAttr.needsUpdate = true;
-              state.progress = 0;
-          }
-      } else if (state.status === 'exploding') {
+      if (state.status === 'exploding') {
           state.progress += delta / 1.0;
           const posAttr = state.explosion.geometry.getAttribute('position');
           const velAttr = state.explosion.geometry.getAttribute('velocity');
@@ -573,12 +567,14 @@ nav a:hover {
   border-radius: 8px;
   text-align: center;
   opacity: 0; /* Start hidden */
-  transition: opacity 0.3s ease-in-out;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
   backdrop-filter: blur(10px);
 }
 
 .feature-card.is-visible {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .feature-card h3 {
