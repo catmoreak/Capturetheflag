@@ -9,7 +9,7 @@
           <nav>
             <NuxtLink to="/">Home</NuxtLink>
             <NuxtLink to="/challenges">Challenges</NuxtLink>
-            <NuxtLink to="/leaderboard">Leaderboard</NuxtLink>
+            <!-- <NuxtLink to="/leaderboard">Leaderboard</NuxtLink> -->
             <NuxtLink to="/login" class="btn btn-outline">Login</NuxtLink>
           </nav>
         </div>
@@ -20,7 +20,7 @@
           <div class="container">
             <h1>Welcome, Agent.</h1>
             <p class="subtitle">The mission is simple. The execution is not. Prove your skill.</p>
-            <a href="#" class="btn btn-primary">[ Begin Mission ]</a>
+            <button @click="goToChallenges" class="btn btn-primary">[ Begin Mission ]</button>
           </div>
         </section>
 
@@ -57,6 +57,10 @@ import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+const goToChallenges = () => {
+  navigateTo('/challenges')
+}
 
 const threeCanvas = ref<HTMLCanvasElement | null>(null)
 const contentOverlay = ref<HTMLElement | null>(null)
