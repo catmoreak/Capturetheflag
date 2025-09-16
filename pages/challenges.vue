@@ -1,5 +1,9 @@
 <template>
   <div class="cyberpunk-container">
+    <!-- Hidden CTF Flag for Basic Recon Challenge -->
+    <!-- Flag: CTF{view_source_is_basic_recon} -->
+    <div style="display: none;" data-ctf-flag="CTF{view_source_is_basic_recon}">Basic Recon Flag</div>
+    
     <!-- Three.js Background Canvas -->
     <canvas ref="threeCanvas" class="threejs-background"></canvas>
     
