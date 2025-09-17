@@ -1,10 +1,18 @@
 <template>
   <div class="cyberpunk-container">
+    <!-- Loading Screen -->
+    <div v-if="isLoading" class="loading-screen">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">INITIALIZING SYSTEMS...</div>
+      </div>
+    </div>
+    
     <!-- Three.js Background Canvas -->
-    <canvas ref="threeCanvas" class="threejs-background"></canvas>
+    <canvas ref="threeCanvas" class="threejs-background" :style="{ display: isLoading ? 'none' : 'block' }"></canvas>
     
     <!-- Main Interface -->
-    <div class="cyberpunk-interface">
+    <div class="cyberpunk-interface" v-show="!isLoading">
       
       <!-- HUD Header -->
       <div class="hud-header">
@@ -197,11 +205,15 @@ import * as THREE from 'three'
 
 // Three.js references
 const threeCanvas = ref<HTMLCanvasElement | null>(null)
-let scene: THREE.Scene
-let camera: THREE.PerspectiveCamera
-let renderer: THREE.WebGLRenderer
-let animationId: number
-let particles: THREE.Points
+let scene: THREE.Scene | null = null
+let camera: THREE.PerspectiveCamera | null = null
+let renderer: THREE.WebGLRenderer | null = null
+let animationId: number | null = null
+let particles: THREE.Points | null = null
+
+// App state
+const isLoading = ref(true)
+const threeJsLoaded = ref(false)
 
 // Challenge state
 const currentChallengeIndex = ref(0)
@@ -221,7 +233,18 @@ const loginResult = ref('')
 const cipherResults = ref('')
 
 // Challenge definitions
-const challenges = [
+interface Challenge {
+  id: number
+  title: string
+  difficulty: string
+  points: number
+  description: string
+  hint: string
+  solution: string
+  files?: { name: string }[]
+}
+
+const challenges: Challenge[] = [
   {
     id: 0,
     title: 'BASIC_RECON.exe',
@@ -271,7 +294,11 @@ const challenges = [
 ]
 
 // Computed properties
-const currentChallenge = computed(() => challenges[currentChallengeIndex.value])
+const currentChallenge = computed((): Challenge => {
+  const index = Math.max(0, Math.min(currentChallengeIndex.value, challenges.length - 1))
+  // Since we constrain the index within bounds and challenges array is never empty, this is guaranteed to exist
+  return challenges[index]!
+})
 const solvedCount = computed(() => solvedChallenges.value.size)
 const allCompleted = computed(() => solvedCount.value === 5)
 const systemStatus = computed(() => {
@@ -283,6 +310,7 @@ const systemStatus = computed(() => {
 // Challenge functions
 const submitFlag = () => {
   const challenge = currentChallenge.value
+  if (!challenge) return
   
   if (flagInput.value.trim().toLowerCase() === challenge.solution.toLowerCase()) {
     totalScore.value += challenge.points
@@ -324,13 +352,22 @@ const runCipherTool = () => {
   const encryptedText = "PGS{FDHVDU_FLSKHU_VL_HDV}"
   const results = []
   
+  results.push('CAESAR CIPHER ANALYSIS INITIATED...')
+  results.push('='.repeat(50))
+  results.push('')
+  
   for (let i = 1; i <= 25; i++) {
     const decoded = caesarDecode(encryptedText, i)
     results.push(`SHIFT_${i.toString().padStart(2, '0')}: ${decoded}`)
     if (decoded.includes('CTF{')) {
-      results.push(`>>> POTENTIAL_MATCH_DETECTED <<<`)
+      results.push(`🎯 >>> MATCH FOUND! SHIFT ${i} PRODUCES VALID FLAG <<<`)
+      results.push('    ▲ This appears to be the correct decryption!')
+      results.push('')
     }
   }
+  
+  results.push('')
+  results.push('ANALYSIS COMPLETE. Look for CTF{...} pattern above.')
   
   cipherResults.value = results.join('\n')
 }
@@ -402,20 +439,30 @@ Use: strings mystery_binary.exe | grep CTF`
 
 // Three.js initialization
 const initThreeJS = () => {
-  if (!threeCanvas.value) return
-  
-  // Scene setup
-  scene = new THREE.Scene()
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-  renderer = new THREE.WebGLRenderer({ 
-    canvas: threeCanvas.value, 
-    alpha: true, 
-    antialias: true,
-    powerPreference: "high-performance"
-  })
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.setClearColor(0x000000, 0)
+  try {
+    if (!threeCanvas.value) {
+      console.warn('Three.js canvas not available')
+      return
+    }
+    
+    // Prevent double initialization
+    if (renderer) {
+      console.warn('Three.js already initialized')
+      return
+    }
+    
+    // Scene setup
+    scene = new THREE.Scene()
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    renderer = new THREE.WebGLRenderer({ 
+      canvas: threeCanvas.value, 
+      alpha: true, 
+      antialias: true,
+      powerPreference: "high-performance"
+    })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setClearColor(0x000000, 0)
   
   // Optimized particle system
   const particleCount = 500
@@ -452,45 +499,83 @@ const initThreeJS = () => {
   })
   
   particles = new THREE.Points(geometry, material)
-  scene.add(particles)
-  
-  // Store velocities for animation
-  particles.userData = { velocities }
-  
-  camera.position.z = 50
-  
-  animate()
+    scene.add(particles)
+    
+    // Store velocities for animation
+    particles.userData = { velocities }
+    
+    camera.position.z = 50
+    
+    animate()
+    threeJsLoaded.value = true
+  } catch (error) {
+    console.error('Failed to initialize Three.js:', error)
+    // Gracefully degrade - hide the canvas if Three.js fails
+    if (threeCanvas.value) {
+      threeCanvas.value.style.display = 'none'
+    }
+    threeJsLoaded.value = false
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const animate = () => {
-  if (!renderer || !scene || !camera) return
-  
-  animationId = requestAnimationFrame(animate)
-  
-  // Smooth particle animation
-  if (particles && particles.userData.velocities) {
-    const positions = particles.geometry.attributes.position.array
-    const velocities = particles.userData.velocities
+  try {
+    if (!renderer || !scene || !camera) return
     
-    for (let i = 0; i < positions.length; i += 3) {
-      positions[i] += velocities[i]
-      positions[i + 1] += velocities[i + 1]
-      positions[i + 2] += velocities[i + 2]
+    animationId = requestAnimationFrame(animate)
+    
+    // Smooth particle animation
+    if (particles && particles.userData?.velocities && particles.geometry?.attributes?.position) {
+      const positionAttr = particles.geometry.attributes.position
+      const positions = positionAttr.array as Float32Array
+      const velocities = particles.userData.velocities as Float32Array
       
-      // Boundary wrapping
-      if (Math.abs(positions[i]) > 40) velocities[i] *= -1
-      if (Math.abs(positions[i + 1]) > 40) velocities[i + 1] *= -1
-      if (Math.abs(positions[i + 2]) > 40) velocities[i + 2] *= -1
+      if (positions && velocities && positions.length === velocities.length) {
+        for (let i = 0; i < positions.length - 2; i += 3) {
+          // Safe array access with bounds checking
+          const x = positions[i]
+          const y = positions[i + 1]
+          const z = positions[i + 2]
+          const vx = velocities[i]
+          const vy = velocities[i + 1]
+          const vz = velocities[i + 2]
+          
+          if (x !== undefined && y !== undefined && z !== undefined && 
+              vx !== undefined && vy !== undefined && vz !== undefined) {
+            const newX = x + vx
+            const newY = y + vy
+            const newZ = z + vz
+            
+            positions[i] = newX
+            positions[i + 1] = newY
+            positions[i + 2] = newZ
+            
+            // Boundary wrapping
+            if (Math.abs(newX) > 40) velocities[i] = -vx
+            if (Math.abs(newY) > 40) velocities[i + 1] = -vy
+            if (Math.abs(newZ) > 40) velocities[i + 2] = -vz
+          }
+        }
+        
+        positionAttr.needsUpdate = true
+        
+        // Gentle rotation
+        particles.rotation.x += 0.0005
+        particles.rotation.y += 0.001
+      }
     }
     
-    particles.geometry.attributes.position.needsUpdate = true
-    
-    // Gentle rotation
-    particles.rotation.x += 0.0005
-    particles.rotation.y += 0.001
+    renderer.render(scene, camera)
+  } catch (error) {
+    console.error('Animation error:', error)
+    // Stop animation on error to prevent infinite error loop
+    if (animationId) {
+      cancelAnimationFrame(animationId)
+      animationId = null
+    }
   }
-  
-  renderer.render(scene, camera)
 }
 
 const handleResize = () => {
@@ -502,31 +587,71 @@ const handleResize = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  // Add flag to DOM for basic recon challenge
-  document.body.setAttribute('data-ctf-flag', 'CTF{view_source_is_basic_recon}')
+onMounted(async () => {
+  // Ensure we're on the client side
+  if (typeof window === 'undefined') {
+    isLoading.value = false
+    return
+  }
   
-  // Add hidden comment
-  const comment = document.createComment(' Hidden flag: CTF{view_source_is_basic_recon} ')
-  document.head.appendChild(comment)
-  
-  // Add network challenge header - simulate via meta tag that shows in network requests
-  const metaFlag = document.createElement('meta')
-  metaFlag.setAttribute('name', 'X-CTF-Flag')
-  metaFlag.setAttribute('content', 'CTF{network_headers_exposed}')
-  document.head.appendChild(metaFlag)
-  
-  // Also add to body for easier discovery
-  document.body.setAttribute('data-network-flag', 'Check Network tab for X-CTF-Flag header: CTF{network_headers_exposed}')
-  
-  initThreeJS()
-  window.addEventListener('resize', handleResize)
+  try {
+    // Add flag to DOM for basic recon challenge
+    document.body.setAttribute('data-ctf-flag', 'CTF{view_source_is_basic_recon}')
+    
+    // Add hidden comment
+    const comment = document.createComment(' Hidden flag: CTF{view_source_is_basic_recon} ')
+    document.head.appendChild(comment)
+    
+    // Add network challenge header - simulate via meta tag that shows in network requests
+    const metaFlag = document.createElement('meta')
+    metaFlag.setAttribute('name', 'X-CTF-Flag')
+    metaFlag.setAttribute('content', 'CTF{network_headers_exposed}')
+    document.head.appendChild(metaFlag)
+    
+    // Also add to body for easier discovery
+    document.body.setAttribute('data-network-flag', 'Check Network tab for X-CTF-Flag header: CTF{network_headers_exposed}')
+    
+    // Wait a bit for the DOM to be ready
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
+    initThreeJS()
+    window.addEventListener('resize', handleResize)
+  } catch (error) {
+    console.error('Error during initialization:', error)
+    isLoading.value = false
+  }
 })
 
 onUnmounted(() => {
+  // Clean up animation
   if (animationId) {
     cancelAnimationFrame(animationId)
+    animationId = null
   }
+  
+  // Clean up Three.js resources
+  if (renderer) {
+    renderer.dispose()
+    renderer = null
+  }
+  
+  if (particles && particles.geometry) {
+    particles.geometry.dispose()
+  }
+  
+  if (particles && particles.material) {
+    if (Array.isArray(particles.material)) {
+      particles.material.forEach(material => material.dispose())
+    } else {
+      particles.material.dispose()
+    }
+  }
+  
+  particles = null
+  scene = null
+  camera = null
+  
+  // Remove event listeners
   window.removeEventListener('resize', handleResize)
 })
 </script>
@@ -540,6 +665,52 @@ onUnmounted(() => {
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   position: relative;
   overflow: hidden;
+}
+
+/* Loading Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-content {
+  text-align: center;
+  color: #00d4ff;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 212, 255, 0.3);
+  border-top: 3px solid #00d4ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loading-text {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .threejs-background {
@@ -933,6 +1104,18 @@ onUnmounted(() => {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   padding: 1.5rem;
+  position: relative;
+}
+
+.tool-interface::after {
+  content: "↕ Scroll to view all results";
+  position: absolute;
+  bottom: 0.5rem;
+  right: 1rem;
+  font-size: 0.7rem;
+  color: rgba(99, 102, 241, 0.6);
+  pointer-events: none;
+  font-family: 'Inter', sans-serif;
 }
 
 .tool-header {
@@ -952,11 +1135,34 @@ onUnmounted(() => {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 0.85rem;
   white-space: pre-line;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 4px;
   color: #e0e6ed;
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(0, 0, 0, 0.2);
+}
+
+/* WebKit scrollbar styling for better visibility */
+.tool-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tool-output::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.tool-output::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 4px;
+}
+
+.tool-output::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
 }
 
 .hint-btn, .tool-btn {
