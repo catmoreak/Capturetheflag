@@ -107,6 +107,20 @@
                 </div>
               </div>
               
+              <!-- Steganography Image -->
+              <div v-if="currentChallenge.id === 3" class="stego-interface">
+                <div class="data-label">INTERCEPTED_IMAGE:</div>
+                <div class="image-container">
+                  <img 
+                    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" 
+                    alt="Suspicious Image" 
+                    class="stego-image"
+                    title="CTF{hidden_pixels_tell_secrets}"
+                  />
+                  <p class="image-hint">Right-click and inspect this image for hidden data...</p>
+                </div>
+              </div>
+              
               <!-- File Downloads -->
               <div v-if="currentChallenge.files" class="file-downloads">
                 <div class="download-label">EVIDENCE_FILES:</div>
@@ -119,15 +133,35 @@
                 </div>
               </div>
 
-              <!-- Network Analysis Info -->
-              <div v-if="currentChallenge.id === 3" class="network-info">
-                <div class="info-label">NETWORK_ANALYSIS_PROTOCOL:</div>
-                <div class="analysis-steps">
-                  <div class="step">1. Open Developer Tools (F12)</div>
-                  <div class="step">2. Navigate to Network tab</div>
-                  <div class="step">3. Refresh this page</div>
-                  <div class="step">4. Examine HTTP response headers</div>
-                  <div class="step">5. Look for X-CTF-Flag header</div>
+              <!-- JavaScript Obfuscation Challenge -->
+              <div v-if="currentChallenge.id === 4" class="js-obfuscation-interface">
+                <div class="data-label">OBFUSCATED_CODE:</div>
+                <div class="code-container">
+                  <pre class="obfuscated-code">
+function _0x1234(){
+  var _0x5678=['Q1RGe2phdmFzY3JpcHRfc2VjcmV0c19kZWNvZGVkfQ=='];
+  return _0x5678;
+}
+var secret = atob(_0x1234()[0]);
+console.log('Hidden flag:', secret);
+                  </pre>
+                  <p class="code-hint">Open your browser console and analyze this JavaScript code...</p>
+                </div>
+              </div>
+
+              <!-- Forensics Challenge -->
+              <div v-if="currentChallenge.id === 5" class="forensics-interface">
+                <div class="data-label">EVIDENCE_COLLECTED:</div>
+                <div class="forensics-container">
+                  <div class="evidence-item" data-flag="CTF{forensics_investigation_complete}">
+                    <div class="evidence-header">📋 INCIDENT_REPORT_2025.txt</div>
+                    <div class="evidence-content">
+                      <p>Agent compromised at 14:32 UTC. Extraction protocol initiated.</p>
+                      <p>Recovery status: <span style="color: var(--primary-color);">SUCCESSFUL</span></p>
+                      <p class="hidden-data"><!-- Investigation complete: CTF{forensics_investigation_complete} --></p>
+                    </div>
+                  </div>
+                  <p class="forensics-hint">Examine the evidence carefully. Some data may be hidden from plain sight...</p>
                 </div>
               </div>
             </div>
@@ -299,22 +333,30 @@ const challenges: Challenge[] = [
   },
   {
     id: 3,
-    title: 'NETWORK_ANALYSIS.exe',
+    title: 'STEGANOGRAPHY.exe',
     difficulty: 'medium',
     points: 400,
-    description: 'Analyze network communications for hidden intelligence. Check HTTP headers for suspicious data.',
-    hint: 'Open browser Network tab (F12 > Network), refresh the page and examine HTTP response headers for hidden flags.',
-    solution: 'CTF{network_headers_exposed}'
+    description: 'Extract hidden intelligence from digital image. Visual data contains concealed transmission.',
+    hint: 'Analyze the image data. Look for hidden text in image properties, metadata, or pixel manipulation. Right-click > Inspect element on images.',
+    solution: 'CTF{hidden_pixels_tell_secrets}'
   },
   {
     id: 4,
-    title: 'REVERSE_ENGINEERING.exe',
-    difficulty: 'expert',
+    title: 'JS_OBFUSCATION.exe',
+    difficulty: 'medium',
     points: 500,
-    description: 'Extract secrets from compiled binary. Reverse engineer target executable.',
-    hint: 'Use strings analysis or disassembly tools. Look for embedded plaintext data.',
-    files: [{ name: 'mystery_binary.exe' }],
-    solution: 'CTF{binary_secrets_revealed}'
+    description: 'Decode obfuscated JavaScript to reveal hidden credentials. Client-side security bypass detected.',
+    hint: 'Open browser console (F12 > Console) and analyze the obfuscated JavaScript function. Look for encoded strings or hidden variables.',
+    solution: 'CTF{javascript_secrets_decoded}'
+  },
+  {
+    id: 5,
+    title: 'FORENSICS_ANALYSIS.exe',
+    difficulty: 'hard',
+    points: 600,
+    description: 'Examine digital evidence for hidden data. Investigate suspicious network communications and extract intelligence.',
+    hint: 'Check the page source for hidden comments or inspect network requests. Look for data hidden in HTML attributes or CSS properties.',
+    solution: 'CTF{forensics_investigation_complete}'
   }
 ]
 
@@ -323,7 +365,7 @@ const currentChallenge = computed((): Challenge => {
   return challenges[index]!
 })
 const solvedCount = computed(() => solvedChallenges.value.size)
-const allCompleted = computed(() => solvedCount.value === 5)
+const allCompleted = computed(() => solvedCount.value === 6)
 const systemStatus = computed(() => {
   if (allCompleted.value) return 'COMPLETE'
   if (solvedCount.value === 0) return 'INITIALIZING'
@@ -859,6 +901,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --primary-color: #00ff88;
+  --danger-color: #ff0000;
+  --dark-bg: #050a14;
+  --light-text: #e6f1ff;
+  --dark-text: #8899a6;
+  --card-bg: rgba(16, 24, 38, 0.8);
+  --border-color: rgba(0, 255, 136, 0.2);
+}
+
 /* Ensure page can scroll */
 :global(html, body) {
   overflow-y: auto !important;
@@ -869,9 +923,9 @@ onUnmounted(() => {
 /* Global Styles */
 .cyberpunk-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
-  color: #e0e6ed;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(180deg, #050a14 0%, #000 100%);
+  color: #e6f1ff;
+  font-family: 'Roboto', sans-serif;
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
@@ -885,7 +939,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+  background: linear-gradient(180deg, #050a14 0%, #000 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -894,21 +948,21 @@ onUnmounted(() => {
 
 .loading-content {
   text-align: center;
-  color: #00d4ff;
+  color: var(--primary-color);
 }
 
 .loading-spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid rgba(0, 212, 255, 0.3);
-  border-top: 3px solid #00d4ff;
+  border: 3px solid rgba(0, 255, 136, 0.3);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
 }
 
 .loading-text {
-  font-family: 'Courier New', monospace;
+  font-family: 'Share Tech Mono', monospace;
   font-size: 0.9rem;
   letter-spacing: 2px;
   animation: pulse 2s ease-in-out infinite;
@@ -951,8 +1005,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   margin-bottom: 2rem;
   backdrop-filter: blur(20px);
@@ -975,18 +1029,18 @@ onUnmounted(() => {
 }
 
 .status-indicator.initializing {
-  background: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  background: var(--dark-text);
+  box-shadow: 0 0 10px rgba(136, 153, 166, 0.5);
 }
 
 .status-indicator.in_progress {
-  background: #3b82f6;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  background: var(--primary-color);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .status-indicator.complete {
-  background: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  background: var(--primary-color);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .score-display {
@@ -1024,28 +1078,28 @@ onUnmounted(() => {
 
 /* Challenge Window */
 .challenge-window {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   max-width: 900px;
   margin: 0 auto;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.4),
-    0 8px 32px rgba(99, 102, 241, 0.1);
+    0 8px 32px rgba(0, 255, 136, 0.1);
   transition: all 0.3s ease;
 }
 
 .challenge-window:hover {
   box-shadow: 
     0 24px 80px rgba(0, 0, 0, 0.5),
-    0 12px 40px rgba(99, 102, 241, 0.15);
+    0 12px 40px rgba(0, 255, 136, 0.15);
 }
 
 .window-header {
-  background: rgba(99, 102, 241, 0.05);
+  background: rgba(0, 255, 136, 0.05);
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+  border-bottom: 1px solid var(--border-color);
   border-radius: 16px 16px 0 0;
   display: flex;
   justify-content: space-between;
@@ -1061,7 +1115,7 @@ onUnmounted(() => {
 }
 
 .window-icon {
-  color: #6366f1;
+  color: var(--primary-color);
   font-size: 1.1rem;
 }
 
@@ -1230,6 +1284,137 @@ onUnmounted(() => {
   background: rgba(16, 185, 129, 0.1);
   border-color: rgba(16, 185, 129, 0.3);
   color: #10b981;
+}
+
+/* Steganography Interface */
+.stego-interface {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stego-image {
+  width: 300px;
+  height: 200px;
+  background: linear-gradient(45deg, #1a1a2e, #16213e);
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stego-image:hover {
+  border-color: #6366f1;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  transform: scale(1.02);
+}
+
+.image-hint {
+  color: rgba(156, 163, 175, 0.8);
+  font-size: 0.9rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* JavaScript Obfuscation Interface */
+.js-obfuscation-interface {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.code-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.obfuscated-code {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.code-hint {
+  color: rgba(156, 163, 175, 0.8);
+  font-size: 0.9rem;
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Forensics Interface */
+.forensics-interface {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.forensics-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.evidence-item {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.evidence-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.evidence-header {
+  color: var(--primary-color);
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.evidence-content {
+  color: var(--light-text);
+  line-height: 1.6;
+}
+
+.evidence-content p {
+  margin: 0.5rem 0;
+}
+
+.hidden-data {
+  opacity: 0.1;
+  font-size: 0.8rem;
+}
+
+.forensics-hint {
+  color: rgba(156, 163, 175, 0.8);
+  font-size: 0.9rem;
+  text-align: center;
+  font-style: italic;
+  margin: 1rem 0 0 0;
 }
 
 /* File Downloads */
@@ -1422,23 +1607,23 @@ onUnmounted(() => {
 }
 
 .hint-btn, .tool-btn {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 0.75rem 1.5rem;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Share Tech Mono', monospace;
   font-weight: 600;
   transition: all 0.3s ease;
   font-size: 0.9rem;
 }
 
 .hint-btn:hover, .tool-btn:hover {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(0, 255, 136, 0.15);
+  border-color: var(--primary-color);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
 }
 
 /* Input Section */
@@ -1456,42 +1641,43 @@ onUnmounted(() => {
   flex: 1;
   padding: 1rem 1.5rem;
   background: rgba(255, 255, 255, 0.02);
-  border: 2px solid rgba(99, 102, 241, 0.3);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  color: #e0e6ed;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  color: var(--light-text);
+  font-family: 'Share Tech Mono', monospace;
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
 }
 
 .flag-input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  background: rgba(99, 102, 241, 0.05);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+  background: rgba(0, 255, 136, 0.05);
 }
 
 .flag-input::placeholder {
-  color: #6b7280;
+  color: var(--dark-text);
 }
 
 .submit-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border: none;
+  background: transparent;
+  border: 1px solid var(--primary-color);
   border-radius: 8px;
-  color: white;
+  color: var(--primary-color);
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 700;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5b5ef6, #7c3aed);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  background: var(--primary-color);
+  color: var(--dark-bg);
+  box-shadow: 0 0 15px var(--primary-color);
   transform: translateY(-1px);
 }
 
@@ -1715,8 +1901,8 @@ onUnmounted(() => {
 }
 
 .name-modal {
-  background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(30, 30, 50, 0.95));
-  border: 2px solid rgba(99, 102, 241, 0.5);
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 2.5rem;
   max-width: 500px;
@@ -1724,6 +1910,7 @@ onUnmounted(() => {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
   animation: modalSlide 0.3s ease-out;
   position: relative;
+  backdrop-filter: blur(10px);
 }
 
 .name-modal::before {
@@ -1733,7 +1920,7 @@ onUnmounted(() => {
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899, #6366f1);
+  background: linear-gradient(45deg, var(--primary-color), #00cc77, var(--danger-color), var(--primary-color));
   border-radius: 12px;
   z-index: -1;
   animation: borderGlow 3s ease-in-out infinite;
@@ -1761,16 +1948,17 @@ onUnmounted(() => {
 }
 
 .modal-title {
-  color: #6366f1;
+  color: var(--primary-color);
+  font-family: 'Share Tech Mono', monospace;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
 
 .modal-subtitle {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--dark-text);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -1797,33 +1985,34 @@ onUnmounted(() => {
 
 .name-input {
   background: rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(99, 102, 241, 0.3);
+  border: 2px solid var(--border-color);
   border-radius: 6px;
   padding: 1rem;
-  color: #e0e6ed;
+  color: var(--light-text);
   font-size: 1rem;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: 'Share Tech Mono', monospace;
   transition: all 0.3s ease;
 }
 
 .name-input:focus {
   outline: none;
-  border-color: rgba(99, 102, 241, 0.8);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
   background: rgba(0, 0, 0, 0.6);
 }
 
 .name-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--dark-text);
 }
 
 .register-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border: none;
+  background: transparent;
+  border: 1px solid var(--primary-color);
   border-radius: 6px;
   padding: 1rem 2rem;
-  color: white;
-  font-weight: 600;
+  color: var(--primary-color);
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 700;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1834,8 +2023,9 @@ onUnmounted(() => {
 }
 
 .register-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+  background: var(--primary-color);
+  color: var(--dark-bg);
+  box-shadow: 0 0 15px var(--primary-color);
   transform: translateY(-2px);
 }
 
