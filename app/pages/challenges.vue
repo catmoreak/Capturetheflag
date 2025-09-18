@@ -1,6 +1,6 @@
 <template>
   <div class="cyberpunk-container">
-    <!-- Loading Screen -->
+ 
     <div v-if="isLoading" class="loading-screen">
       <div class="loading-content">
         <div class="loading-spinner"></div>
@@ -421,15 +421,15 @@ const restoreUserProgress = async (userId: string) => {
         restoredScore += completion.points
       })
       
-      console.log('🎯 Completed challenge IDs:', Array.from(completedChallengeIds))
-      console.log('💰 Total restored score:', restoredScore)
+      // console.log('🎯 Completed challenge IDs:', Array.from(completedChallengeIds))
+      // console.log('💰 Total restored score:', restoredScore)
       
       
       solvedChallenges.value = completedChallengeIds
       totalScore.value = restoredScore
       
-      console.log('🧩 Total challenges available:', challenges.length)
-      console.log('🏆 Challenges completed:', completedChallengeIds.size)
+      // console.log('🧩 Total challenges available:', challenges.length)
+      // console.log('🏆 Challenges completed:', completedChallengeIds.size)
       
     
       let nextChallengeIndex = 0
@@ -439,11 +439,11 @@ const restoreUserProgress = async (userId: string) => {
         console.log(`🔍 Checking challenge ${i}: ${challenge?.title} (ID: ${challenge?.id})`)
         
         if (challenge && !completedChallengeIds.has(challenge.id)) {
-          console.log(`🎯 Found first uncompleted challenge at index ${i}`)
+          // console.log(`🎯 Found first uncompleted challenge at index ${i}`)
           nextChallengeIndex = i
           break
         } else {
-          console.log(`✅ Challenge ${i} is already completed, continuing...`)
+          // console.log(`✅ Challenge ${i} is already completed, continuing...`)
           
           nextChallengeIndex = i + 1
         }
@@ -451,7 +451,7 @@ const restoreUserProgress = async (userId: string) => {
       
       
       if (nextChallengeIndex >= challenges.length) {
-        console.log('🏁 All challenges completed, staying at last challenge')
+        // console.log('🏁 All challenges completed, staying at last challenge')
         nextChallengeIndex = challenges.length - 1
       }
       
@@ -461,24 +461,24 @@ const restoreUserProgress = async (userId: string) => {
       
       const currentChallenge = challenges[nextChallengeIndex]
       if (currentChallenge && completedChallengeIds.has(currentChallenge.id)) {
-        console.log('✅ Current challenge is already completed')
+        // console.log('✅ Current challenge is already completed')
         challengeCompleted.value = true
       } else {
-        console.log('🔄 Current challenge is not completed yet')
+        // console.log('🔄 Current challenge is not completed yet')
         challengeCompleted.value = false
       }
       
-      console.log(`📋 RESTORATION SUMMARY:`)
-      console.log(`   - Challenges completed: ${completedChallengeIds.size}`)
-      console.log(`   - Points restored: ${restoredScore}`)
-      console.log(`   - Current challenge index: ${nextChallengeIndex}`)
-      console.log(`   - Current challenge: ${challenges[nextChallengeIndex]?.title}`)
-      console.log(`   - Challenge completed: ${challengeCompleted.value}`)
+      // console.log(`📋 RESTORATION SUMMARY:`)
+      // console.log(`   - Challenges completed: ${completedChallengeIds.size}`)
+      // console.log(`   - Points restored: ${restoredScore}`)
+      // console.log(`   - Current challenge index: ${nextChallengeIndex}`)
+      // console.log(`   - Current challenge: ${challenges[nextChallengeIndex]?.title}`)
+      // console.log(`   - Challenge completed: ${challengeCompleted.value}`)
     } else {
-      console.log('ℹ️ No completions found for user, starting from beginning')
+      // console.log('ℹ️ No completions found for user, starting from beginning')
     }
   } catch (error) {
-    console.error('❌ Failed to restore user progress:', error)
+    // console.error('❌ Failed to restore user progress:', error)
   }
 }
 
@@ -1904,51 +1904,70 @@ onUnmounted(() => {
   }
 }
 
-/* Modal Styles */
+/* Modal Styles - Enhanced Neon Theme */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  animation: overlayGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes overlayGlow {
+  0% { background: rgba(0, 0, 0, 0.95); }
+  100% { background: rgba(0, 20, 10, 0.98); }
 }
 
 .name-modal {
-  background: var(--card-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  padding: 2.5rem;
-  max-width: 500px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 20, 10, 0.9) 50%, rgba(0, 0, 0, 0.95) 100%);
+  border: 2px solid var(--primary-color);
+  border-radius: 16px;
+  padding: 3rem;
+  max-width: 550px;
   width: 90%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-  animation: modalSlide 0.3s ease-out;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 136, 0.4),
+    0 0 60px rgba(0, 255, 136, 0.2),
+    inset 0 0 30px rgba(0, 255, 136, 0.05);
+  animation: modalSlide 0.5s ease-out, modalPulse 3s ease-in-out infinite;
   position: relative;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
 }
 
-.name-modal::before {
+/* .name-modal::before {
   content: '';
   position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(45deg, var(--primary-color), #00cc77, var(--danger-color), var(--primary-color));
-  border-radius: 12px;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, 
+    var(--primary-color) 0%, 
+    #00ffaa 25%, 
+    #00ff88 50%, 
+    #00cc77 75%, 
+    var(--primary-color) 100%);
+  border-radius: 16px;
   z-index: -1;
-  animation: borderGlow 3s ease-in-out infinite;
-}
+  animation: borderRotate 4s linear infinite, borderGlow 2s ease-in-out infinite alternate;
+} */
+/* 
+@keyframes borderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} */
 
 @keyframes modalSlide {
   from {
     opacity: 0;
-    transform: translateY(-50px) scale(0.9);
+    transform: translateY(-50px) scale(0.8);
   }
   to {
     opacity: 1;
@@ -1956,30 +1975,86 @@ onUnmounted(() => {
   }
 }
 
+@keyframes modalPulse {
+  0%, 100% { 
+    box-shadow: 
+      0 0 30px rgba(0, 255, 136, 0.4),
+      0 0 60px rgba(0, 255, 136, 0.2),
+      inset 0 0 30px rgba(0, 255, 136, 0.05);
+  }
+  50% { 
+    box-shadow: 
+      0 0 40px rgba(0, 255, 136, 0.6),
+      0 0 80px rgba(0, 255, 136, 0.3),
+      inset 0 0 40px rgba(0, 255, 136, 0.1);
+  }
+}
+
 @keyframes borderGlow {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  0% { opacity: 0.8; filter: brightness(1); }
+  100% { opacity: 1; filter: brightness(1.3); }
 }
 
 .modal-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+}
+
+.modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  animation: scanLine 2s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
 }
 
 .modal-title {
   color: var(--primary-color);
   font-family: 'Share Tech Mono', monospace;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  text-shadow: 
+    0 0 10px var(--primary-color),
+    0 0 20px var(--primary-color),
+    0 0 30px var(--primary-color);
+  animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+  0% { 
+    text-shadow: 
+      0 0 10px var(--primary-color),
+      0 0 20px var(--primary-color),
+      0 0 30px var(--primary-color);
+  }
+  100% { 
+    text-shadow: 
+      0 0 15px var(--primary-color),
+      0 0 25px var(--primary-color),
+      0 0 40px var(--primary-color);
+  }
 }
 
 .modal-subtitle {
-  color: var(--dark-text);
-  font-size: 0.9rem;
+  color: #00ccaa;
+  font-size: 1rem;
   margin: 0;
+  font-weight: 300;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 204, 170, 0.5);
 }
 
 .modal-content {
@@ -1995,63 +2070,83 @@ onUnmounted(() => {
 }
 
 .input-group label {
-  color: #6366f1;
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  font-family: 'Share Tech Mono', monospace;
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+  margin-bottom: 0.8rem;
 }
 
 .name-input {
-  background: rgba(0, 0, 0, 0.4);
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
-  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 1.2rem;
   color: var(--light-text);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-family: 'Share Tech Mono', monospace;
   transition: all 0.3s ease;
+  box-shadow: 
+    0 0 10px rgba(0, 255, 136, 0.2),
+    inset 0 0 10px rgba(0, 0, 0, 0.5);
+  position: relative;
 }
 
 .name-input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-  background: rgba(0, 0, 0, 0.6);
+  border-color: #00ffaa;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 136, 0.5),
+    0 0 40px rgba(0, 255, 136, 0.2),
+    inset 0 0 15px rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.02);
 }
 
 .name-input::placeholder {
-  color: var(--dark-text);
+  color: #00aa88;
+  opacity: 0.7;
 }
 
 .register-btn {
-  background: transparent;
-  border: 1px solid var(--primary-color);
-  border-radius: 6px;
-  padding: 1rem 2rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 40, 20, 0.8) 100%);
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  padding: 1.2rem 2.5rem;
   color: var(--primary-color);
   font-family: 'Share Tech Mono', monospace;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 
+    0 0 15px rgba(0, 255, 136, 0.3),
+    inset 0 0 15px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .register-btn:hover:not(:disabled) {
-  background: var(--primary-color);
-  color: var(--dark-bg);
-  box-shadow: 0 0 15px var(--primary-color);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #00ffaa 100%);
+  color: #000000;
+  box-shadow: 
+    0 0 25px var(--primary-color),
+    0 0 50px rgba(0, 255, 136, 0.4);
+  transform: translateY(-3px) scale(1.05);
+  text-shadow: none;
 }
 
 .register-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+  /* filter: grayscale(0.5); */
 }
 
 .register-btn::before {
@@ -2061,11 +2156,29 @@ onUnmounted(() => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.3), transparent);
+  transition: left 0.6s ease;
 }
 
 .register-btn:hover:not(:disabled)::before {
   left: 100%;
+}
+
+.register-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.register-btn:hover:not(:disabled)::after {
+  width: 200%;
+  height: 200%;
 }
 </style>
