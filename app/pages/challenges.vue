@@ -692,9 +692,29 @@ const initThreeJS = () => {
     
     
     const t = Math.random()
-    colors[i * 3] = 0.4 + t * 0.3     // Red
-    colors[i * 3 + 1] = 0.5 + t * 0.3 // Green  
-    colors[i * 3 + 2] = 0.8 + t * 0.2 // Blue
+    const colorType = Math.floor(Math.random() * 4) // 4 different neon color types
+    
+    if (colorType === 0) {
+      // Light cyan/aqua
+      colors[i * 3] = 0.3 + t * 0.2     // Red
+      colors[i * 3 + 1] = 0.9 + t * 0.1 // Green  
+      colors[i * 3 + 2] = 0.9 + t * 0.1 // Blue
+    } else if (colorType === 1) {
+      // Light green
+      colors[i * 3] = 0.2 + t * 0.2     // Red
+      colors[i * 3 + 1] = 0.9 + t * 0.1 // Green  
+      colors[i * 3 + 2] = 0.3 + t * 0.2 // Blue
+    } else if (colorType === 2) {
+      // Light pink/magenta
+      colors[i * 3] = 0.9 + t * 0.1     // Red
+      colors[i * 3 + 1] = 0.3 + t * 0.2 // Green  
+      colors[i * 3 + 2] = 0.8 + t * 0.2 // Blue
+    } else {
+      // Light purple
+      colors[i * 3] = 0.7 + t * 0.2     // Red
+      colors[i * 3 + 1] = 0.3 + t * 0.2 // Green  
+      colors[i * 3 + 2] = 0.9 + t * 0.1 // Blue
+    }
   }
   
   const geometry = new THREE.BufferGeometry()
@@ -702,10 +722,10 @@ const initThreeJS = () => {
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
   
   const material = new THREE.PointsMaterial({
-    size: 1.5,
+    size: 0.8,
     vertexColors: true,
     transparent: true,
-    opacity: 0.4,
+    opacity: 0.15,
     blending: THREE.AdditiveBlending
   })
   
