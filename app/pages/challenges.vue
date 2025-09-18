@@ -8,10 +8,10 @@
       </div>
     </div>
     
-    <!-- Three.js Background Canvas -->
+   
     <canvas ref="threeCanvas" class="threejs-background" :style="{ display: isLoading ? 'none' : 'block' }"></canvas>
     
-    <!-- Name Registration Modal -->
+
     <div v-if="showNameModal" class="modal-overlay">
       <div class="name-modal">
         <div class="modal-header">
@@ -40,10 +40,10 @@
       </div>
     </div>
     
-    <!-- Main Interface -->
+    
     <div class="cyberpunk-interface" v-show="!isLoading && !showNameModal">
       
-      <!-- HUD Header -->
+     
       <div class="hud-header">
         <div class="mission-status">
           <span class="status-indicator" :class="systemStatus.toLowerCase()">●</span>
@@ -56,7 +56,6 @@
         </div>
       </div>
 
-      <!-- Challenge Window -->
       <div class="challenge-window" v-if="!allCompleted">
         <div class="window-header">
           <div class="window-title">
@@ -69,7 +68,7 @@
         </div>
 
         <div class="window-content">
-          <!-- Challenge Info -->
+  
           <div class="challenge-info">
             <div class="challenge-meta">
               <span class="challenge-id">ID: {{ String(currentChallenge.id).padStart(3, '0') }}</span>
@@ -77,16 +76,16 @@
             </div>
             <p class="challenge-description">{{ currentChallenge.description }}</p>
             
-            <!-- Challenge specific content -->
+          
             <div class="challenge-content">
-              <!-- Caesar Cipher Data -->
+             
               <div v-if="currentChallenge.id === 1" class="encrypted-data">
                 <div class="data-label">INTERCEPTED_TRANSMISSION:</div>
                                 <p>Intercept encrypted transmission:</p>
                 <div class="encrypted-text">PGS{PNRFNE_PVCURE_VF_RNFL}</div>
               </div>
               
-              <!-- Web Exploit Login -->
+             
               <div v-if="currentChallenge.id === 2" class="exploit-interface">
                 <div class="login-form">
                   <input 
@@ -166,7 +165,7 @@ console.log('Hidden flag:', secret);
               </div>
             </div>
             
-            <!-- Hint Section -->
+           
             <div class="hint-section" v-if="showHint">
               <div class="hint-header">
                 <span class="hint-icon">💡</span>
@@ -174,7 +173,7 @@ console.log('Hidden flag:', secret);
               </div>
               <p class="hint-text">{{ currentChallenge.hint }}</p>
               
-              <!-- Tool Interface -->
+           
               <div v-if="currentChallenge.id === 1 && showTool" class="tool-interface">
                 <div class="tool-header">CIPHER_ANALYZER_v2.1</div>
                 <div class="tool-output">{{ cipherResults }}</div>
@@ -192,7 +191,7 @@ console.log('Hidden flag:', secret);
             </button>
           </div>
 
-          <!-- Input Section -->
+       
           <div class="input-section">
             <div class="flag-input-container">
               <input 
@@ -211,7 +210,7 @@ console.log('Hidden flag:', secret);
         </div>
       </div>
 
-      <!-- Success/Completion Overlay -->
+      
       <div class="completion-overlay" v-if="showCompletionScreen">
         <div class="completion-window">
           <div class="completion-header">
@@ -237,7 +236,7 @@ console.log('Hidden flag:', secret);
         </div>
       </div>
       
-      <!-- Final Mission Complete Screen -->
+      
       <div class="mission-complete" v-if="allCompleted && !showCompletionScreen">
         <div class="complete-header">
           <h1 class="glitch-text">MISSION ACCOMPLISHED</h1>
@@ -386,12 +385,12 @@ const registerUser = async () => {
     
     if (response.success) {
       currentUser.value = response.user
-      // Store user info in localStorage for session persistence
+      
       localStorage.setItem('ctf-user', JSON.stringify(response.user))
       showNameModal.value = false
-      // Start timing when user begins
+      
       challengeStartTime.value = Date.now()
-      // Restore user's previous progress
+      
       await restoreUserProgress(response.user.id)
 
     }
@@ -412,7 +411,7 @@ const restoreUserProgress = async (userId: string) => {
     if (response.success && response.completions.length > 0) {
       console.log('✅ Found completions:', response.completions.length)
       
-      // Restore completed challenges
+     
       const completedChallengeIds = new Set<number>()
       let restoredScore = 0
       
@@ -425,14 +424,14 @@ const restoreUserProgress = async (userId: string) => {
       console.log('🎯 Completed challenge IDs:', Array.from(completedChallengeIds))
       console.log('💰 Total restored score:', restoredScore)
       
-      // Update the reactive state
+      
       solvedChallenges.value = completedChallengeIds
       totalScore.value = restoredScore
       
       console.log('🧩 Total challenges available:', challenges.length)
       console.log('🏆 Challenges completed:', completedChallengeIds.size)
       
-      // Find the first uncompleted challenge to continue from there
+    
       let nextChallengeIndex = 0
       
       for (let i = 0; i < challenges.length; i++) {
@@ -445,12 +444,12 @@ const restoreUserProgress = async (userId: string) => {
           break
         } else {
           console.log(`✅ Challenge ${i} is already completed, continuing...`)
-          // If this challenge is completed, the next challenge should be i+1
+          
           nextChallengeIndex = i + 1
         }
       }
       
-      // If all challenges are completed, stay at the last challenge
+      
       if (nextChallengeIndex >= challenges.length) {
         console.log('🏁 All challenges completed, staying at last challenge')
         nextChallengeIndex = challenges.length - 1
@@ -459,7 +458,7 @@ const restoreUserProgress = async (userId: string) => {
       console.log('📊 Setting current challenge index to:', nextChallengeIndex)
       currentChallengeIndex.value = nextChallengeIndex
       
-      // Check if the current challenge is already completed
+      
       const currentChallenge = challenges[nextChallengeIndex]
       if (currentChallenge && completedChallengeIds.has(currentChallenge.id)) {
         console.log('✅ Current challenge is already completed')
@@ -566,9 +565,9 @@ const runCipherTool = () => {
   
   results.push('')
   results.push('ANALYSIS COMPLETE. Look for CTF{...} pattern above.')
-  results.push('') // Extra spacing to ensure overflow
+  results.push('') 
   results.push('END OF ANALYSIS RESULTS')
-  results.push('') // More padding
+  results.push('') 
   results.push('')
   
   cipherResults.value = results.join('\n')
@@ -722,7 +721,7 @@ const initThreeJS = () => {
     threeJsLoaded.value = true
   } catch (error) {
     console.error('Failed to initialize Three.js:', error)
-    // Gracefully degrade - hide the canvas if Three.js fails
+   
     if (threeCanvas.value) {
       threeCanvas.value.style.display = 'none'
     }
@@ -798,11 +797,11 @@ const handleResize = () => {
   renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
-// Lifecycle
+
 onMounted(async () => {
   console.log('🚀 Component mounted, starting initialization...')
   
-  // Ensure we're on the client side
+ 
   if (typeof window === 'undefined') {
     isLoading.value = false
     return
