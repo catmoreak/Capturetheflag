@@ -227,7 +227,7 @@ console.log('Hidden flag:', secret);
             </div>
             <div class="stat">
               <span class="label">Progress:</span>
-              <span class="value">{{ solvedCount }}/5</span>
+              <span class="value">{{ solvedCount }}/6</span>
             </div>
           </div>
           <button @click="proceedToNext" class="proceed-btn">
@@ -249,7 +249,7 @@ console.log('Hidden flag:', secret);
               <div class="stat-label">TOTAL POINTS</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">5/5</div>
+              <div class="stat-value">6/6</div>
               <div class="stat-label">CHALLENGES</div>
             </div>
             <div class="stat-item">

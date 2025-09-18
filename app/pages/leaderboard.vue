@@ -61,7 +61,7 @@
                               </td>
                               <td>{{ entry.name }}</td>
                               <td>{{ entry.totalPoints }}</td>
-                              <td>{{ entry.totalChallenges }}/5</td>
+                              <td>{{ entry.totalChallenges }}/6</td>
                               <td>{{ entry.averageTime }}s</td>
                               <td>{{ formatTime(entry.totalTime) }}</td>
                               <td>{{ formatDate(entry.joinedAt) }}</td>
