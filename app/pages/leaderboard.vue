@@ -17,7 +17,7 @@
           <div class="feature-card is-visible" style="max-width: 700px; margin: 0 auto;">
             <h3>🏆 Leaderboard</h3>
             <button @click="refreshLeaderboard" class="btn" :disabled="isLoadingLeaderboard" style="float:right; margin-top:-2.5rem;">
-              <span :class="{ 'spinning': isLoadingLeaderboard }">{{ isLoadingLeaderboard ? '⟳' : '↻' }}</span> Refresh
+              <span :class="{ 'spinning': isLoadingLeaderboard }">{{ isLoadingLeaderboard ? '⟳' : '↻'  }}</span>    Refresh
             </button>
             <div v-if="leaderboard.length > 0">
               <div class="features" style="padding:0;">

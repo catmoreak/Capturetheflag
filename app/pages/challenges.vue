@@ -51,7 +51,7 @@
         </div>
         <div class="score-display">
           <span>SCORE: {{ totalScore }}</span>
-          <span class="progress">{{ solvedCount }}/5</span>
+          <span class="progress">{{ solvedCount }}/6</span>
           <NuxtLink to="/leaderboard" class="leaderboard-link">🏆 LEADERBOARD</NuxtLink>
         </div>
       </div>
@@ -116,7 +116,7 @@
                     class="stego-image"
                     title="CTF{hidden_pixels_tell_secrets}"
                   />
-                  <p class="image-hint">Right-click and inspect this image for hidden data...</p>
+                  <p class="image-hint"></p>
                 </div>
               </div>
               
