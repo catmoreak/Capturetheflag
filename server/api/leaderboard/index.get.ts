@@ -19,7 +19,21 @@ export default defineEventHandler(async (event) => {
 
     const rankings = leaderboard.map((user: any) => {
       const totalPoints = user.completions.reduce((sum: number, completion: any) => sum + completion.points, 0)
-      const totalChallenges = user.completions.length
+      
+      // Count unique challenges by getting unique challenge IDs
+      const uniqueChallengeIds = new Set(user.completions.map((c: any) => c.challengeId))
+      const totalChallenges = uniqueChallengeIds.size
+      
+      // Debug logging
+      if (user.name === 'helloboss') {
+        console.log(`Debug for ${user.name}:`, {
+          completions: user.completions.length,
+          uniqueChallenges: totalChallenges,
+          challengeIds: Array.from(uniqueChallengeIds),
+          totalPoints
+        })
+      }
+      
       const averageTime = totalChallenges > 0 
         ? user.completions.reduce((sum: number, completion: any) => sum + completion.completionTime, 0) / totalChallenges
         : 0

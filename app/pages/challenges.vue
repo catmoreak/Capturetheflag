@@ -488,7 +488,7 @@ const submitFlag = async () => {
   
   if (flagInput.value.trim().toLowerCase() === challenge.solution.toLowerCase()) {
     totalScore.value += challenge.points
-    solvedChallenges.value.add(currentChallengeIndex.value)
+    solvedChallenges.value.add(challenge.id)
     lastEarnedPoints.value = challenge.points
     completionMessage.value = 'CHALLENGE NEUTRALIZED'
     showCompletionScreen.value = true
