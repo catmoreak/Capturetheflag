@@ -9,8 +9,8 @@
           <nav>
             <NuxtLink to="/">Home</NuxtLink>
             <NuxtLink to="/challenges">Challenges</NuxtLink>
-            <!-- <NuxtLink to="/leaderboard">Leaderboard</NuxtLink> -->
-            <!-- <NuxtLink to="/login" class="btn btn-outline">Login</NuxtLink> -->
+            <NuxtLink to="/leaderboard">Leaderboard</NuxtLink>
+            
           </nav>
         </div>
       </header>
@@ -30,10 +30,10 @@
               <h3>Diverse Challenges</h3>
               <p>From web and mobile to reverse engineering and cryptography.</p>
             </div>
-            <!-- <div class="feature-card" ref="featureCard2">
+            <div class="feature-card" ref="featureCard2">
               <h3>Live Leaderboard</h3>
               <p>Track your progress and see how you stack up against the competition in real-time.</p>
-            </div> -->
+            </div>
             <div class="feature-card" ref="featureCard3">
               <h3>Community & Learning</h3>
               <p>Join a vibrant community and sharpen your skills in a collaborative environment.</p>
@@ -568,8 +568,40 @@ nav a:hover {
   text-align: center;
   opacity: 0; /* Start hidden */
   transform: translateY(20px);
-  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+  transition: all 0.4s ease-in-out;
   backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+  transition: left 0.6s ease-in-out;
+}
+
+.feature-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  border-color: var(--primary-color);
+  box-shadow: 
+    0 0 20px rgba(0, 255, 136, 0.3),
+    0 8px 32px rgba(0, 255, 136, 0.1),
+    inset 0 0 0 1px rgba(0, 255, 136, 0.2);
+  background-color: rgba(16, 24, 38, 0.95);
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+.feature-card:hover h3 {
+  text-shadow: 0 0 10px var(--primary-color);
+  color: #00ffaa;
 }
 
 .feature-card.is-visible {

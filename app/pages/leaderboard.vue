@@ -306,7 +306,7 @@ let scene: THREE.Scene
           console.error('Error parsing saved user:', error)
         }
       }
-      // Three.js background setup (from index.vue)
+      
       scene = new THREE.Scene()
       scene.fog = new THREE.Fog(0x050a14, 150, 350)
       camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
