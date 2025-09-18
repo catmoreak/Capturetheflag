@@ -853,7 +853,7 @@ onMounted(async () => {
     document.head.appendChild(metaFlag)
     
     // Also add to body for easier discovery
-    document.body.setAttribute('data-network-flag', 'Check Network tab for X-CTF-Flag header: CTF{network_headers_exposed}')
+   
     
     // Wait a bit for the DOM to be ready
     await new Promise(resolve => setTimeout(resolve, 100))
