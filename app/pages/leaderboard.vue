@@ -12,113 +12,156 @@
           </nav>
         </div>
       </header>
-      <main class="container" style="padding-top: 7rem;">
-        <section class="features">
-          <div class="feature-card is-visible" style="max-width: 700px; margin: 0 auto;">
-            <h3>🏆 Leaderboard</h3>
-            <button @click="refreshLeaderboard" class="btn" :disabled="isLoadingLeaderboard" style="float:right; margin-top:-2.5rem;">
-              <span :class="{ 'spinning': isLoadingLeaderboard }">{{ isLoadingLeaderboard ? '⟳' : '↻'  }}</span>    Refresh
-            </button>
-            <div v-if="leaderboard.length > 0">
-              <div class="features" style="padding:0;">
-                <div class="container" style="padding:0;">
-                  <div class="features" style="padding:0;">
-                    <div class="feature-card is-visible" style="background:none;box-shadow:none;padding:0;">
-                      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;">
-                        <div>
-                          <div class="ctf-stat-value">{{ leaderboard.length }}</div>
-                          <div class="ctf-stat-label">Players</div>
-                        </div>
-                        <div>
-                          <div class="ctf-stat-value">{{ topScore }}</div>
-                          <div class="ctf-stat-label">Top Score</div>
-                        </div>
-                        <div>
-                          <div class="ctf-stat-value">{{ completedChallenges }}</div>
-                          <div class="ctf-stat-label">Total Solves</div>
-                        </div>
-                      </div>
-                      <div style="overflow-x:auto;">
-                        <table style="width:100%;border-collapse:collapse;">
-                          <thead>
-                            <tr style="background:rgba(0,255,136,0.08);color:var(--primary-color);">
-                              <th>#</th>
-                              <th>Player</th>
-                              <th>Score</th>
-                              <th>Solved</th>
-                              <th>Avg Time</th>
-                              <th>Total Time</th>
-                              <th>Joined</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr v-for="entry in leaderboard" :key="entry.id" :style="entry.id === currentUser?.id ? 'background:rgba(0,255,136,0.08);color:var(--primary-color);' : ''">
-                              <td>
-                                <span v-if="entry.rank === 1">🥇</span>
-                                <span v-else-if="entry.rank === 2">🥈</span>
-                                <span v-else-if="entry.rank === 3">🥉</span>
-                                <span v-else>{{ entry.rank }}</span>
-                              </td>
-                              <td>{{ entry.name }}</td>
-                              <td>{{ entry.totalPoints }}</td>
-                              <td>{{ entry.totalChallenges }}/6</td>
-                              <td>{{ entry.averageTime }}s</td>
-                              <td>{{ formatTime(entry.totalTime) }}</td>
-                              <td>{{ formatDate(entry.joinedAt) }}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
+      <main class="main-content">
+        <div class="container">
+          <!-- Page Header -->
+          <div class="page-header">
+            <h1 class="page-title">🏆 Leaderboard</h1>
+            <p class="page-subtitle">Track your progress and compete with fellow hackers</p>
+          </div>
+
+          <!-- Statistics Overview -->
+          <div v-if="leaderboard.length > 0" class="stats-overview">
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ leaderboard.length }}</div>
+                <div class="stat-label">Active Players</div>
               </div>
             </div>
-            <div v-else-if="!isLoadingLeaderboard" style="text-align:center;padding:2rem 0;">
-              <div class="ctf-empty-icon">📊</div>
-              <h3>No Data Yet</h3>
-              <p>Be the first to complete challenges and appear on the leaderboard!</p>
-              <NuxtLink to="/" class="btn">Start Challenges</NuxtLink>
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ topScore }}</div>
+                <div class="stat-label">Top Score</div>
+              </div>
             </div>
-            <div v-if="isLoadingLeaderboard" style="text-align:center;padding:2rem 0;">
-              <div class="ctf-spinner"></div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-content">
+                <div class="stat-value">{{ completedChallenges }}</div>
+                <div class="stat-label">Total Solves</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leaderboard Section -->
+          <div class="leaderboard-section">
+            <div class="section-header">
+              <h2>Rankings</h2>
+              <button @click="refreshLeaderboard" class="refresh-btn" :disabled="isLoadingLeaderboard">
+                <span :class="{ 'spinning': isLoadingLeaderboard }">{{ isLoadingLeaderboard ? '⟳' : '↻' }}</span>
+                Refresh
+              </button>
+            </div>
+
+            <!-- Loading State -->
+            <div v-if="isLoadingLeaderboard" class="loading-state">
+              <div class="loading-spinner"></div>
               <p>Loading leaderboard data...</p>
             </div>
+
+            <!-- Empty State -->
+            <div v-else-if="leaderboard.length === 0" class="empty-state">
+              <div class="empty-icon">📊</div>
+              <h3>No Data Yet</h3>
+              <p>Be the first to complete challenges and claim the top spot!</p>
+              <NuxtLink to="/challenges" class="cta-btn">Start Hacking</NuxtLink>
+            </div>
+
+            <!-- Leaderboard Table -->
+            <div v-else class="leaderboard-table-container">
+              <table class="leaderboard-table">
+                <thead>
+                  <tr>
+                    <th @click="sortBy('rank')" class="sortable">
+                      Rank
+                      <span class="sort-icon" :class="{ 'active': sortField === 'rank', 'desc': sortDirection === 'desc' }">↕</span>
+                    </th>
+                    <th @click="sortBy('name')" class="sortable">
+                      Player
+                      <span class="sort-icon" :class="{ 'active': sortField === 'name', 'desc': sortDirection === 'desc' }">↕</span>
+                    </th>
+                    <th @click="sortBy('totalPoints')" class="sortable">
+                      Score
+                      <span class="sort-icon" :class="{ 'active': sortField === 'totalPoints', 'desc': sortDirection === 'desc' }">↕</span>
+                    </th>
+                    <th @click="sortBy('totalChallenges')" class="sortable">
+                      Solved
+                      <span class="sort-icon" :class="{ 'active': sortField === 'totalChallenges', 'desc': sortDirection === 'desc' }">↕</span>
+                    </th>
+                    <th @click="sortBy('averageTime')" class="sortable">
+                      Avg Time
+                      <span class="sort-icon" :class="{ 'active': sortField === 'averageTime', 'desc': sortDirection === 'desc' }">↕</span>
+                    </th>
+                    <th>Total Time</th>
+                    <th>Joined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="entry in sortedLeaderboard" :key="entry.id"
+                      :class="{ 'current-user': entry.id === currentUser?.id, 'top-three': entry.rank <= 3 }">
+                    <td class="rank-cell">
+                      <span v-if="entry.rank === 1" class="rank-badge gold">🥇</span>
+                      <span v-else-if="entry.rank === 2" class="rank-badge silver">🥈</span>
+                      <span v-else-if="entry.rank === 3" class="rank-badge bronze">🥉</span>
+                      <span v-else class="rank-number">{{ entry.rank }}</span>
+                    </td>
+                    <td class="player-cell">
+                      <div class="player-info">
+                        <span class="player-name">{{ entry.name }}</span>
+                        <span v-if="entry.id === currentUser?.id" class="you-badge">YOU</span>
+                      </div>
+                    </td>
+                    <td class="score-cell">{{ entry.totalPoints.toLocaleString() }}</td>
+                    <td class="solved-cell">{{ entry.totalChallenges }}/6</td>
+                    <td class="time-cell">{{ entry.averageTime }}s</td>
+                    <td class="time-cell">{{ formatTime(entry.totalTime) }}</td>
+                    <td class="date-cell">{{ formatDate(entry.joinedAt) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </section>
-        <section v-if="currentUser" class="features" style="padding:0;">
-          <div class="feature-card is-visible" style="max-width:500px;margin:2rem auto 0 auto;">
-            <h3>Your Stats</h3>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
-              <div style="text-align:center;">
-                <div style="font-size:1.2rem;font-weight:700;color:var(--primary-color);margin-bottom:0.5rem;">{{ currentUser.name }}</div>
-                <div v-if="userRank" style="color:var(--dark-text);font-size:0.95rem;">Rank #{{ userRank }}</div>
+
+          <!-- User Stats Section -->
+          <div v-if="currentUser && leaderboard.length > 0" class="user-stats-section">
+            <div class="user-stats-card">
+              <h3>Your Performance</h3>
+              <div class="user-header">
+                <div class="user-avatar">{{ currentUser.name.charAt(0).toUpperCase() }}</div>
+                <div class="user-info">
+                  <div class="user-name">{{ currentUser.name }}</div>
+                  <div class="user-rank">Rank #{{ userRank }}</div>
+                </div>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
-                <div>
-                  <div class="ctf-stat-value">{{ userStats.totalPoints }}</div>
-                  <div class="ctf-stat-label">Points</div>
+              <div class="user-stats-grid">
+                <div class="user-stat">
+                  <div class="stat-value">{{ userStats.totalPoints.toLocaleString() }}</div>
+                  <div class="stat-label">Total Points</div>
                 </div>
-                <div>
-                  <div class="ctf-stat-value">{{ userStats.completedChallenges }}</div>
-                  <div class="ctf-stat-label">Completed</div>
+                <div class="user-stat">
+                  <div class="stat-value">{{ userStats.completedChallenges }}</div>
+                  <div class="stat-label">Challenges Solved</div>
                 </div>
-                <div>
-                  <div class="ctf-stat-value">{{ userStats.averageTime }}s</div>
-                  <div class="ctf-stat-label">Avg Time</div>
+                <div class="user-stat">
+                  <div class="stat-value">{{ userStats.averageTime }}s</div>
+                  <div class="stat-label">Average Time</div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
       </main>
+
       <footer class="main-footer">
         <div class="container">
           &copy; {{ new Date().getFullYear() }} CTF Challenge. All rights reserved.
         </div>
       </footer>
     </div>
-</div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -143,6 +186,9 @@ let scene: THREE.Scene
   const leaderboard = ref<any[]>([])
   const isLoadingLeaderboard = ref(false)
   const currentUser = ref<any>(null)
+  const sortField = ref<string>('rank')
+  const sortDirection = ref<'asc' | 'desc'>('asc')
+
   const topScore = computed(() => leaderboard.value.length > 0 ? leaderboard.value[0].totalPoints : 0)
   const completedChallenges = computed(() => leaderboard.value.reduce((total, user) => total + user.totalChallenges, 0))
   const userRank = computed(() => {
@@ -159,6 +205,32 @@ let scene: THREE.Scene
       averageTime: user.averageTime
     } : { totalPoints: 0, completedChallenges: 0, averageTime: 0 }
   })
+  const sortedLeaderboard = computed(() => {
+    return [...leaderboard.value].sort((a, b) => {
+      let aVal = a[sortField.value]
+      let bVal = b[sortField.value]
+
+      if (sortField.value === 'name') {
+        aVal = aVal.toLowerCase()
+        bVal = bVal.toLowerCase()
+      }
+
+      if (sortDirection.value === 'asc') {
+        return aVal > bVal ? 1 : -1
+      } else {
+        return aVal < bVal ? 1 : -1
+      }
+    })
+  })
+
+  const sortBy = (field: string) => {
+    if (sortField.value === field) {
+      sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+    } else {
+      sortField.value = field
+      sortDirection.value = 'asc'
+    }
+  }
   const refreshLeaderboard = async () => {
     if (isLoadingLeaderboard.value) return
     isLoadingLeaderboard.value = true
@@ -363,7 +435,7 @@ let scene: THREE.Scene
 .hacker-theme {
   position: relative;
   overflow: hidden;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(180deg, #050a14 0%, #000 100%);
 }
 
@@ -371,29 +443,34 @@ let scene: THREE.Scene
   display: block;
   width: 100%;
   height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
 }
 
 .content-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  z-index: 1;
 }
 
 .main-header {
   position: relative;
   z-index: 2;
   padding: 1rem 0;
+  backdrop-filter: blur(10px);
+  background: rgba(5, 10, 20, 0.8);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.1);
 }
 
 .logo {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--primary-color);
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 nav {
@@ -405,10 +482,12 @@ nav a {
   color: #fff;
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.3s;
 }
 
-nav a.active {
+nav a:hover, nav a.active {
   color: var(--primary-color);
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
 }
 
 .container {
@@ -417,92 +496,483 @@ nav a.active {
   padding: 0 1rem;
 }
 
-.features {
-  margin: 4rem 0;
+.main-content {
+  flex: 1;
+  padding: 2rem 0;
 }
 
-.feature-card {
+/* Page Header */
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  color: #ccc;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Statistics Overview */
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
 }
 
-.feature-card:hover {
+.stat-card:hover {
   transform: translateY(-2px);
+  border-color: rgba(0, 255, 136, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.1);
 }
 
-.ctf-stat-value {
+.stat-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 255, 136, 0.1);
+  border-radius: 50%;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
   font-size: 2rem;
   font-weight: 700;
   color: #fff;
+  margin-bottom: 0.25rem;
 }
 
-.ctf-stat-label {
-  font-size: 0.875rem;
+.stat-label {
+  font-size: 0.9rem;
   color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+/* Leaderboard Section */
+.leaderboard-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  margin-bottom: 2rem;
 }
 
-th, td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-th {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-.btn {
-  display: inline-flex;
+.section-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  background: var(--primary-color);
+  margin-bottom: 2rem;
+}
+
+.section-header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
   color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s;
+  margin: 0;
 }
 
-.btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.main-footer {
-  position: relative;
-  z-index: 2;
-  padding: 1rem 0;
-  text-align: center;
-  color: #ccc;
-}
-
-.ctf-empty-icon {
-  font-size: 3rem;
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
   color: var(--primary-color);
-  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
 }
 
-.ctf-spinner {
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  width: 2rem;
-  height: 2rem;
+.refresh-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 136, 0.2);
+  transform: translateY(-1px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinning {
   animation: spin 1s linear infinite;
 }
 
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.loading-spinner {
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loading-state p {
+  color: #ccc;
+  font-size: 1.1rem;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #fff;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  color: #ccc;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: var(--primary-color);
+  color: #000;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+}
+
+/* Leaderboard Table */
+.leaderboard-table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.leaderboard-table thead th {
+  background: rgba(0, 255, 136, 0.1);
+  color: var(--primary-color);
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s;
+}
+
+.sortable:hover {
+  background: rgba(0, 255, 136, 0.15);
+}
+
+.sort-icon {
+  margin-left: 0.5rem;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+.sort-icon.active {
+  opacity: 1;
+}
+
+.sort-icon.desc {
+  transform: rotate(180deg);
+}
+
+.leaderboard-table tbody td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #fff;
+  transition: background 0.3s;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.leaderboard-table tbody tr.current-user {
+  background: rgba(0, 255, 136, 0.1);
+  border-left: 3px solid var(--primary-color);
+}
+
+.leaderboard-table tbody tr.top-three {
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.rank-cell {
+  width: 80px;
+  text-align: center;
+}
+
+.rank-badge {
+  font-size: 1.2rem;
+}
+
+.rank-number {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.player-cell {
+  min-width: 150px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.player-name {
+  font-weight: 500;
+}
+
+.you-badge {
+  background: var(--primary-color);
+  color: #000;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.score-cell {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-family: 'Courier New', monospace;
+}
+
+.solved-cell {
+  color: #4ade80;
+}
+
+.time-cell {
+  font-family: 'Courier New', monospace;
+}
+
+.date-cell {
+  color: #94a3b8;
+}
+
+/* User Stats Section */
+.user-stats-section {
+  margin-top: 2rem;
+}
+
+.user-stats-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.user-stats-card h3 {
+  color: #fff;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.user-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.user-avatar {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-color);
+  color: #000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.25rem;
+}
+
+.user-rank {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.user-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.user-stat {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-stat .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+}
+
+.user-stat .stat-label {
+  font-size: 0.85rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Footer */
+.main-footer {
+  position: relative;
+  z-index: 2;
+  padding: 2rem 0;
+  text-align: center;
+  color: #666;
+  backdrop-filter: blur(10px);
+  background: rgba(5, 10, 20, 0.8);
+  border-top: 1px solid rgba(0, 255, 136, 0.1);
+}
+
+/* Animations */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .stats-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .refresh-btn {
+    justify-content: center;
+  }
+
+  .leaderboard-section {
+    padding: 1rem;
+  }
+
+  .leaderboard-table {
+    font-size: 0.85rem;
+  }
+
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .user-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .leaderboard-table-container {
+    font-size: 0.8rem;
+  }
+
+  .leaderboard-table thead th,
+  .leaderboard-table tbody td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .player-cell {
+    min-width: 120px;
+  }
 }
 </style>
