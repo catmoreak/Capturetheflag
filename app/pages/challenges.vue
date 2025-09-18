@@ -11,8 +11,37 @@
     <!-- Three.js Background Canvas -->
     <canvas ref="threeCanvas" class="threejs-background" :style="{ display: isLoading ? 'none' : 'block' }"></canvas>
     
+    <!-- Name Registration Modal -->
+    <div v-if="showNameModal" class="modal-overlay">
+      <div class="name-modal">
+        <div class="modal-header">
+          <h2 class="modal-title">◉ OPERATOR IDENTIFICATION</h2>
+          <p class="modal-subtitle">Enter your callsign to begin the mission</p>
+        </div>
+        <div class="modal-content">
+          <div class="input-group">
+            <label for="username">CALLSIGN:</label>
+            <input 
+              id="username"
+              v-model="userName" 
+              @keyup.enter="registerUser"
+              type="text" 
+              placeholder="Enter your name..."
+              class="name-input"
+              maxlength="20"
+              required
+            />
+          </div>
+          <button @click="registerUser" :disabled="!userName.trim()" class="register-btn">
+            <span v-if="!isRegistering">INITIALIZE SYSTEM</span>
+            <span v-else>CONNECTING...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <!-- Main Interface -->
-    <div class="cyberpunk-interface" v-show="!isLoading">
+    <div class="cyberpunk-interface" v-show="!isLoading && !showNameModal">
       
       <!-- HUD Header -->
       <div class="hud-header">
@@ -23,6 +52,7 @@
         <div class="score-display">
           <span>SCORE: {{ totalScore }}</span>
           <span class="progress">{{ solvedCount }}/5</span>
+          <NuxtLink to="/leaderboard" class="leaderboard-link">🏆 LEADERBOARD</NuxtLink>
         </div>
       </div>
 
@@ -52,7 +82,8 @@
               <!-- Caesar Cipher Data -->
               <div v-if="currentChallenge.id === 1" class="encrypted-data">
                 <div class="data-label">INTERCEPTED_TRANSMISSION:</div>
-                <div class="encrypted-text">PGS{FDHVDU_FLSKHU_VL_HDV}</div>
+                                <p>Intercept encrypted transmission:</p>
+                <div class="encrypted-text">PGS{PNRFNE_PVCURE_VF_RNFL}</div>
               </div>
               
               <!-- Web Exploit Login -->
@@ -202,20 +233,19 @@
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import * as THREE from 'three'
-
-// Three.js references
 const threeCanvas = ref<HTMLCanvasElement | null>(null)
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let renderer: THREE.WebGLRenderer | null = null
 let animationId: number | null = null
 let particles: THREE.Points | null = null
-
-// App state
 const isLoading = ref(true)
 const threeJsLoaded = ref(false)
-
-// Challenge state
+const showNameModal = ref(false)
+const currentUser = ref<any>(null)
+const userName = ref('')
+const challengeStartTime = ref<number>(0)
+const isRegistering = ref(false)
 const currentChallengeIndex = ref(0)
 const solvedChallenges = ref<Set<number>>(new Set())
 const totalScore = ref(0)
@@ -226,13 +256,9 @@ const challengeCompleted = ref(false)
 const showCompletionScreen = ref(false)
 const lastEarnedPoints = ref(0)
 const completionMessage = ref('')
-
-// Interactive elements
 const loginForm = reactive({ username: '', password: '' })
 const loginResult = ref('')
 const cipherResults = ref('')
-
-// Challenge definitions
 interface Challenge {
   id: number
   title: string
@@ -243,7 +269,6 @@ interface Challenge {
   solution: string
   files?: { name: string }[]
 }
-
 const challenges: Challenge[] = [
   {
     id: 0,
@@ -293,10 +318,8 @@ const challenges: Challenge[] = [
   }
 ]
 
-// Computed properties
 const currentChallenge = computed((): Challenge => {
   const index = Math.max(0, Math.min(currentChallengeIndex.value, challenges.length - 1))
-  // Since we constrain the index within bounds and challenges array is never empty, this is guaranteed to exist
   return challenges[index]!
 })
 const solvedCount = computed(() => solvedChallenges.value.size)
@@ -306,9 +329,119 @@ const systemStatus = computed(() => {
   if (solvedCount.value === 0) return 'INITIALIZING'
   return 'IN_PROGRESS'
 })
+const registerUser = async () => {
+  if (!userName.value.trim()) return
+  
+  isRegistering.value = true
+  
+  try {
+    const response = await $fetch('/api/users/register', {
+      method: 'POST',
+      body: {
+        name: userName.value.trim()
+      }
+    }) as any
+    
+    if (response.success) {
+      currentUser.value = response.user
+      // Store user info in localStorage for session persistence
+      localStorage.setItem('ctf-user', JSON.stringify(response.user))
+      showNameModal.value = false
+      // Start timing when user begins
+      challengeStartTime.value = Date.now()
+      // Restore user's previous progress
+      await restoreUserProgress(response.user.id)
 
-// Challenge functions
-const submitFlag = () => {
+    }
+  } catch (error) {
+    console.error('Registration failed:', error)
+    alert('Registration failed. Please try again.')
+  } finally {
+    isRegistering.value = false
+  }
+}
+
+const restoreUserProgress = async (userId: string) => {
+  try {
+    console.log('🔍 Starting progress restoration for user:', userId)
+    const response = await $fetch(`/api/users/progress?userId=${userId}`) as any
+    console.log('📡 API response:', response)
+    
+    if (response.success && response.completions.length > 0) {
+      console.log('✅ Found completions:', response.completions.length)
+      
+      // Restore completed challenges
+      const completedChallengeIds = new Set<number>()
+      let restoredScore = 0
+      
+      response.completions.forEach((completion: any) => {
+        console.log('📝 Processing completion:', completion)
+        completedChallengeIds.add(completion.challengeId)
+        restoredScore += completion.points
+      })
+      
+      console.log('🎯 Completed challenge IDs:', Array.from(completedChallengeIds))
+      console.log('💰 Total restored score:', restoredScore)
+      
+      // Update the reactive state
+      solvedChallenges.value = completedChallengeIds
+      totalScore.value = restoredScore
+      
+      console.log('🧩 Total challenges available:', challenges.length)
+      console.log('🏆 Challenges completed:', completedChallengeIds.size)
+      
+      // Find the first uncompleted challenge to continue from there
+      let nextChallengeIndex = 0
+      
+      for (let i = 0; i < challenges.length; i++) {
+        const challenge = challenges[i]
+        console.log(`🔍 Checking challenge ${i}: ${challenge?.title} (ID: ${challenge?.id})`)
+        
+        if (challenge && !completedChallengeIds.has(challenge.id)) {
+          console.log(`🎯 Found first uncompleted challenge at index ${i}`)
+          nextChallengeIndex = i
+          break
+        } else {
+          console.log(`✅ Challenge ${i} is already completed, continuing...`)
+          // If this challenge is completed, the next challenge should be i+1
+          nextChallengeIndex = i + 1
+        }
+      }
+      
+      // If all challenges are completed, stay at the last challenge
+      if (nextChallengeIndex >= challenges.length) {
+        console.log('🏁 All challenges completed, staying at last challenge')
+        nextChallengeIndex = challenges.length - 1
+      }
+      
+      console.log('📊 Setting current challenge index to:', nextChallengeIndex)
+      currentChallengeIndex.value = nextChallengeIndex
+      
+      // Check if the current challenge is already completed
+      const currentChallenge = challenges[nextChallengeIndex]
+      if (currentChallenge && completedChallengeIds.has(currentChallenge.id)) {
+        console.log('✅ Current challenge is already completed')
+        challengeCompleted.value = true
+      } else {
+        console.log('🔄 Current challenge is not completed yet')
+        challengeCompleted.value = false
+      }
+      
+      console.log(`📋 RESTORATION SUMMARY:`)
+      console.log(`   - Challenges completed: ${completedChallengeIds.size}`)
+      console.log(`   - Points restored: ${restoredScore}`)
+      console.log(`   - Current challenge index: ${nextChallengeIndex}`)
+      console.log(`   - Current challenge: ${challenges[nextChallengeIndex]?.title}`)
+      console.log(`   - Challenge completed: ${challengeCompleted.value}`)
+    } else {
+      console.log('ℹ️ No completions found for user, starting from beginning')
+    }
+  } catch (error) {
+    console.error('❌ Failed to restore user progress:', error)
+  }
+}
+
+const submitFlag = async () => {
   const challenge = currentChallenge.value
   if (!challenge) return
   
@@ -320,7 +453,27 @@ const submitFlag = () => {
     showCompletionScreen.value = true
     challengeCompleted.value = true
     
-    // Reset challenge-specific state
+    
+    const completionTime = Math.floor((Date.now() - challengeStartTime.value) / 1000)
+    
+    
+    if (currentUser.value) {
+      try {
+        await $fetch('/api/challenges/complete', {
+          method: 'POST',
+          body: {
+            userId: currentUser.value.id,
+            challengeId: challenge.id,
+            points: challenge.points,
+            completionTime
+          }
+        })
+      } catch (error) {
+        console.error('Failed to save challenge completion:', error)
+      }
+    }
+    
+    
     showHint.value = false
     showTool.value = false
     flagInput.value = ''
@@ -328,8 +481,11 @@ const submitFlag = () => {
     loginForm.password = ''
     loginResult.value = ''
     cipherResults.value = ''
+    
+    
+    challengeStartTime.value = Date.now()
   } else {
-    // Show error feedback
+    
     alert('ACCESS DENIED - Invalid flag')
   }
 }
@@ -349,7 +505,7 @@ const requestHint = () => {
 
 const runCipherTool = () => {
   showTool.value = true
-  const encryptedText = "PGS{FDHVDU_FLSKHU_VL_HDV}"
+  const encryptedText = "PGS{PNRFNE_PVCURE_VF_RNFL}"
   const results = []
   
   results.push('CAESAR CIPHER ANALYSIS INITIATED...')
@@ -368,8 +524,22 @@ const runCipherTool = () => {
   
   results.push('')
   results.push('ANALYSIS COMPLETE. Look for CTF{...} pattern above.')
+  results.push('') // Extra spacing to ensure overflow
+  results.push('END OF ANALYSIS RESULTS')
+  results.push('') // More padding
+  results.push('')
   
   cipherResults.value = results.join('\n')
+  
+  // Ensure the container can scroll by forcing a reflow
+  nextTick(() => {
+    const toolOutput = document.querySelector('.tool-output') as HTMLElement
+    if (toolOutput) {
+      toolOutput.scrollTop = 0
+      // Force browser to recognize scrollable content
+      toolOutput.style.overflowY = 'scroll'
+    }
+  })
 }
 
 const caesarDecode = (text: string, shift: number): string => {
@@ -437,7 +607,7 @@ Use: strings mystery_binary.exe | grep CTF`
   URL.revokeObjectURL(url)
 }
 
-// Three.js initialization
+// Removed duplicate definition of initThreeJS
 const initThreeJS = () => {
   try {
     if (!threeCanvas.value) {
@@ -445,13 +615,13 @@ const initThreeJS = () => {
       return
     }
     
-    // Prevent double initialization
+    
     if (renderer) {
       console.warn('Three.js already initialized')
       return
     }
     
-    // Scene setup
+    
     scene = new THREE.Scene()
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     renderer = new THREE.WebGLRenderer({ 
@@ -464,7 +634,7 @@ const initThreeJS = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setClearColor(0x000000, 0)
   
-  // Optimized particle system
+  
   const particleCount = 500
   const positions = new Float32Array(particleCount * 3)
   const colors = new Float32Array(particleCount * 3)
@@ -479,7 +649,7 @@ const initThreeJS = () => {
     velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02
     velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.02
     
-    // Elegant blue-purple color scheme
+    
     const t = Math.random()
     colors[i * 3] = 0.4 + t * 0.3     // Red
     colors[i * 3 + 1] = 0.5 + t * 0.3 // Green  
@@ -501,7 +671,7 @@ const initThreeJS = () => {
   particles = new THREE.Points(geometry, material)
     scene.add(particles)
     
-    // Store velocities for animation
+    
     particles.userData = { velocities }
     
     camera.position.z = 50
@@ -526,7 +696,7 @@ const animate = () => {
     
     animationId = requestAnimationFrame(animate)
     
-    // Smooth particle animation
+    
     if (particles && particles.userData?.velocities && particles.geometry?.attributes?.position) {
       const positionAttr = particles.geometry.attributes.position
       const positions = positionAttr.array as Float32Array
@@ -534,7 +704,7 @@ const animate = () => {
       
       if (positions && velocities && positions.length === velocities.length) {
         for (let i = 0; i < positions.length - 2; i += 3) {
-          // Safe array access with bounds checking
+          
           const x = positions[i]
           const y = positions[i + 1]
           const z = positions[i + 2]
@@ -552,7 +722,7 @@ const animate = () => {
             positions[i + 1] = newY
             positions[i + 2] = newZ
             
-            // Boundary wrapping
+            
             if (Math.abs(newX) > 40) velocities[i] = -vx
             if (Math.abs(newY) > 40) velocities[i + 1] = -vy
             if (Math.abs(newZ) > 40) velocities[i + 2] = -vz
@@ -561,7 +731,7 @@ const animate = () => {
         
         positionAttr.needsUpdate = true
         
-        // Gentle rotation
+        
         particles.rotation.x += 0.0005
         particles.rotation.y += 0.001
       }
@@ -570,7 +740,7 @@ const animate = () => {
     renderer.render(scene, camera)
   } catch (error) {
     console.error('Animation error:', error)
-    // Stop animation on error to prevent infinite error loop
+    
     if (animationId) {
       cancelAnimationFrame(animationId)
       animationId = null
@@ -588,10 +758,42 @@ const handleResize = () => {
 
 // Lifecycle
 onMounted(async () => {
+  console.log('🚀 Component mounted, starting initialization...')
+  
   // Ensure we're on the client side
   if (typeof window === 'undefined') {
     isLoading.value = false
     return
+  }
+  
+  // Check for existing user session
+  const savedUser = localStorage.getItem('ctf-user')
+  console.log('💾 Saved user from localStorage:', savedUser)
+  
+  if (savedUser) {
+    try {
+      currentUser.value = JSON.parse(savedUser)
+      console.log('👤 Current user set to:', currentUser.value)
+      challengeStartTime.value = Date.now()
+      
+      console.log('🔄 About to restore user progress...')
+      console.log('📊 Current challenge index BEFORE restoration:', currentChallengeIndex.value)
+      console.log('🎯 Solved challenges BEFORE restoration:', Array.from(solvedChallenges.value))
+      
+      // Restore user's previous progress
+      await restoreUserProgress(currentUser.value.id)
+      
+      console.log('✅ Progress restoration completed')
+      console.log('📊 Current challenge index AFTER restoration:', currentChallengeIndex.value)
+      console.log('🎯 Solved challenges AFTER restoration:', Array.from(solvedChallenges.value))
+    } catch (error) {
+      console.error('Error parsing saved user:', error)
+      localStorage.removeItem('ctf-user')
+      showNameModal.value = true
+    }
+  } else {
+    console.log('❌ No saved user found, showing name modal')
+    showNameModal.value = true
   }
   
   try {
@@ -623,13 +825,13 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // Clean up animation
+  
   if (animationId) {
     cancelAnimationFrame(animationId)
     animationId = null
   }
   
-  // Clean up Three.js resources
+  
   if (renderer) {
     renderer.dispose()
     renderer = null
@@ -651,12 +853,19 @@ onUnmounted(() => {
   scene = null
   camera = null
   
-  // Remove event listeners
+  
   window.removeEventListener('resize', handleResize)
 })
 </script>
 
 <style scoped>
+/* Ensure page can scroll */
+:global(html, body) {
+  overflow-y: auto !important;
+  height: auto !important;
+  scroll-behavior: smooth;
+}
+
 /* Global Styles */
 .cyberpunk-container {
   min-height: 100vh;
@@ -664,7 +873,9 @@ onUnmounted(() => {
   color: #e0e6ed;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 /* Loading Screen */
@@ -729,6 +940,7 @@ onUnmounted(() => {
   z-index: 1;
   min-height: 100vh;
   padding: 2rem;
+  padding-bottom: 4rem;
   display: flex;
   flex-direction: column;
 }
@@ -780,8 +992,30 @@ onUnmounted(() => {
 .score-display {
   display: flex;
   gap: 2rem;
+  align-items: center;
   font-weight: 600;
   font-size: 1rem;
+}
+
+.leaderboard-link {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  color: #f59e0b;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.leaderboard-link:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .progress {
@@ -1108,14 +1342,19 @@ onUnmounted(() => {
 }
 
 .tool-interface::after {
-  content: "↕ Scroll to view all results";
+  content: "🔽 SCROLL DOWN TO SEE MORE RESULTS 🔽";
   position: absolute;
   bottom: 0.5rem;
   right: 1rem;
-  font-size: 0.7rem;
-  color: rgba(99, 102, 241, 0.6);
+  font-size: 0.8rem;
+  color: rgba(99, 102, 241, 0.9);
   pointer-events: none;
   font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  z-index: 10;
 }
 
 .tool-header {
@@ -1131,38 +1370,55 @@ onUnmounted(() => {
 
 .tool-output {
   background: rgba(0, 0, 0, 0.4);
-  padding: 1.5rem;
+  padding: 1rem;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   white-space: pre-line;
-  max-height: 400px;
-  overflow-y: auto;
+  word-wrap: break-word;
+  /* Fixed height container */
+  height: 300px;
+  min-height: 300px;
+  max-height: 300px;
+  /* Force scrolling */
+  overflow: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  border-radius: 4px;
+  /* Styling */
+  border: 2px solid rgba(99, 102, 241, 0.4);
+  border-radius: 6px;
   color: #e0e6ed;
-  /* Custom scrollbar styling */
+  /* Ensure it's a proper scroll container */
+  display: block;
+  position: relative;
+  /* Scrollbar styling */
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(0, 0, 0, 0.2);
+  scrollbar-color: #6366f1 rgba(0, 0, 0, 0.3);
 }
 
 /* WebKit scrollbar styling for better visibility */
 .tool-output::-webkit-scrollbar {
-  width: 8px;
+  width: 12px;
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .tool-output::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  margin: 4px;
 }
 
 .tool-output::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
-  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.8);
+  border-radius: 6px;
+  border: 2px solid rgba(0, 0, 0, 0.4);
 }
 
 .tool-output::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: rgba(99, 102, 241, 1);
+}
+
+.tool-output::-webkit-scrollbar-thumb:active {
+  background: rgba(139, 92, 246, 1);
 }
 
 .hint-btn, .tool-btn {
@@ -1441,5 +1697,166 @@ onUnmounted(() => {
   .glitch-text {
     font-size: 2.5rem;
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(8px);
+}
+
+.name-modal {
+  background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(30, 30, 50, 0.95));
+  border: 2px solid rgba(99, 102, 241, 0.5);
+  border-radius: 12px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  animation: modalSlide 0.3s ease-out;
+  position: relative;
+}
+
+.name-modal::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899, #6366f1);
+  border-radius: 12px;
+  z-index: -1;
+  animation: borderGlow 3s ease-in-out infinite;
+}
+
+@keyframes modalSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes borderGlow {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.modal-title {
+  color: #6366f1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.modal-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-group label {
+  color: #6366f1;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.name-input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: 6px;
+  padding: 1rem;
+  color: #e0e6ed;
+  font-size: 1rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  transition: all 0.3s ease;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.8);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.name-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.register-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: 6px;
+  padding: 1rem 2rem;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+}
+
+.register-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.register-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.register-btn:hover:not(:disabled)::before {
+  left: 100%;
 }
 </style>
