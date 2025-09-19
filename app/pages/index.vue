@@ -58,6 +58,21 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
+interface Particle {
+  life: number;
+  velocity: THREE.Vector3;
+}
+
+class CursorParticle implements Particle {
+  life: number;
+  velocity!: THREE.Vector3;
+
+  constructor() {
+    this.life = 0;
+    this.velocity = new THREE.Vector3();
+  }
+}
+
 const goToChallenges = () => {
   navigateTo('/challenges')
 }
@@ -83,7 +98,7 @@ const packets: any[] = [];
 const cardStates: any[] = [];
 const collisionEffects: any[] = [];
 let cursorParticles: THREE.Points;
-let cursorParticleSystem: any[] = [];
+let cursorParticleSystem: CursorParticle[] = [];
 const GRID_SIZE = 400;
 
 onMounted(() => {
@@ -234,7 +249,7 @@ function setupCursorParticles() {
     const sizes = new Float32Array(PARTICLE_COUNT);
 
     for(let i=0; i < PARTICLE_COUNT; i++) {
-        cursorParticleSystem.push({ life: 0, velocity: new THREE.Vector3() });
+        cursorParticleSystem.push(new CursorParticle());
     }
 
     geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -254,16 +269,24 @@ function updateCursorParticles(delta: number, emitterPos: THREE.Vector3) {
     let particlesToSpawn = 3;
 
     for (let i = 0; i < cursorParticleSystem.length; i++) {
-        const p = cursorParticleSystem[i];
+        const p = cursorParticleSystem[i]!;
         if (p.life > 0) {
             p.life -= delta;
             if (p.life <= 0) {
                 sizes[i] = 0;
             } else {
-                p.velocity.y -= 0.1 * delta; // gravity
-                positions[i*3] += p.velocity.x * delta;
-                positions[i*3+1] += p.velocity.y * delta;
-                positions[i*3+2] += p.velocity.z * delta;
+                if (p.velocity) {
+                    p.velocity.y -= 0.1 * delta; // gravity
+                }
+                const vx = p.velocity ? p.velocity.x : 0;
+                const vy = p.velocity ? p.velocity.y : 0;
+                const vz = p.velocity ? p.velocity.z : 0;
+                // @ts-ignore
+                positions[i*3] += vx * delta;
+                // @ts-ignore
+                positions[i*3+1] += vy * delta;
+                // @ts-ignore
+                positions[i*3+2] += vz * delta;
                 sizes[i] = p.life / 1.0 * 1.5; // Fade size
             }
         } else if (particlesToSpawn > 0) {
@@ -389,7 +412,7 @@ const animate = () => {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(mousePlane);
   if (intersects.length > 0) {
-      const intersectPoint = intersects[0].point;
+      const intersectPoint = intersects[0]!.point;
       cursorLight.position.copy(intersectPoint);
       cursorLight.position.y = 10;
       updateCursorParticles(delta, intersectPoint);
