@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     const rankings = leaderboard.map((user: any) => {
       const totalPoints = user.completions.reduce((sum: number, completion: any) => sum + completion.points, 0)
       
-      // Count unique challenges by getting unique challenge IDs
+  
       const uniqueChallengeIds = new Set(user.completions.map((c: any) => c.challengeId))
       const solvedChallenges = uniqueChallengeIds.size
       const totalChallenges = 6 // Total number of challenges available

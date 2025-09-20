@@ -30,7 +30,7 @@ model ChallengeCompletion {
   userId        String
   challengeId   Int
   points        Int
-  completionTime Int     // Time in seconds to complete the challenge
+  completionTime Int     
   completedAt   DateTime @default(now())
 
   // Relations
