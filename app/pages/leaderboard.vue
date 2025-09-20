@@ -87,9 +87,9 @@
                       Score
                       <span class="sort-icon" :class="{ 'active': sortField === 'totalPoints', 'desc': sortDirection === 'desc' }">↕</span>
                     </th>
-                    <th @click="sortBy('totalChallenges')" class="sortable">
+                    <th @click="sortBy('solvedChallenges')" class="sortable">
                       Solved
-                      <span class="sort-icon" :class="{ 'active': sortField === 'totalChallenges', 'desc': sortDirection === 'desc' }">↕</span>
+                      <span class="sort-icon" :class="{ 'active': sortField === 'solvedChallenges', 'desc': sortDirection === 'desc' }">↕</span>
                     </th>
                     <th @click="sortBy('averageTime')" class="sortable">
                       Avg Time
@@ -115,7 +115,7 @@
                       </div>
                     </td>
                     <td class="score-cell">{{ entry.totalPoints.toLocaleString() }}</td>
-                    <td class="solved-cell">{{ entry.totalChallenges }}/6</td>
+                    <td class="solved-cell">{{ entry.solvedChallenges }}/6</td>
                     <td class="time-cell">{{ entry.averageTime }}s</td>
                     <td class="time-cell">{{ formatTime(entry.totalTime) }}</td>
                     <td class="date-cell">{{ formatDate(entry.joinedAt) }}</td>
@@ -190,7 +190,7 @@ let scene: THREE.Scene
   const sortDirection = ref<'asc' | 'desc'>('asc')
 
   const topScore = computed(() => leaderboard.value.length > 0 ? leaderboard.value[0].totalPoints : 0)
-  const completedChallenges = computed(() => leaderboard.value.reduce((total, user) => total + user.totalChallenges, 0))
+  const completedChallenges = computed(() => leaderboard.value.reduce((total, user) => total + user.solvedChallenges, 0))
   const userRank = computed(() => {
     if (!currentUser.value) return null
     const user = leaderboard.value.find(u => u.id === currentUser.value.id)
@@ -201,7 +201,7 @@ let scene: THREE.Scene
     const user = leaderboard.value.find(u => u.id === currentUser.value.id)
     return user ? {
       totalPoints: user.totalPoints,
-      completedChallenges: user.totalChallenges,
+      completedChallenges: user.solvedChallenges,
       averageTime: user.averageTime
     } : { totalPoints: 0, completedChallenges: 0, averageTime: 0 }
   })

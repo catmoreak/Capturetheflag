@@ -22,20 +22,22 @@ export default defineEventHandler(async (event) => {
       
       // Count unique challenges by getting unique challenge IDs
       const uniqueChallengeIds = new Set(user.completions.map((c: any) => c.challengeId))
-      const totalChallenges = uniqueChallengeIds.size
+      const solvedChallenges = uniqueChallengeIds.size
+      const totalChallenges = 6 // Total number of challenges available
       
       // Debug logging
-      if (user.name === 'helloboss') {
+      if (user.name === 'helloboss' || user.name === 'hacker_shreu') {
         console.log(`Debug for ${user.name}:`, {
           completions: user.completions.length,
-          uniqueChallenges: totalChallenges,
+          solvedChallenges,
+          totalChallenges,
           challengeIds: Array.from(uniqueChallengeIds),
           totalPoints
         })
       }
       
-      const averageTime = totalChallenges > 0 
-        ? user.completions.reduce((sum: number, completion: any) => sum + completion.completionTime, 0) / totalChallenges
+      const averageTime = solvedChallenges > 0 
+        ? user.completions.reduce((sum: number, completion: any) => sum + completion.completionTime, 0) / solvedChallenges
         : 0
       const totalTime = user.completions.reduce((sum: number, completion: any) => sum + completion.completionTime, 0)
       
@@ -43,6 +45,7 @@ export default defineEventHandler(async (event) => {
         id: user.id,
         name: user.name,
         totalPoints,
+        solvedChallenges,
         totalChallenges,
         totalTime,
         averageTime: Math.round(averageTime),
