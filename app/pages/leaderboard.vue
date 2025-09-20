@@ -22,7 +22,7 @@
           </div>
 
           <!-- Statistics Overview -->
-          <div v-if="leaderboard.length > 0" class="stats-overview">
+          <!-- <div v-if="leaderboard.length > 0" class="stats-overview">
             <div class="stat-card">
               <div class="stat-icon">👥</div>
               <div class="stat-content">
@@ -44,7 +44,7 @@
                 <div class="stat-label">Total Solves</div>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- Leaderboard Section -->
           <div class="leaderboard-section">
@@ -129,7 +129,7 @@
           <div v-if="currentUser && leaderboard.length > 0" class="user-stats-section">
             <div class="user-stats-card">
               <h3>Your Performance</h3>
-              <div class="user-header">
+              <div class="user-header" >
                 <div class="user-avatar">{{ currentUser.name.charAt(0).toUpperCase() }}</div>
                 <div class="user-info">
                   <div class="user-name">{{ currentUser.name }}</div>
@@ -839,6 +839,7 @@ nav a:hover, nav a.active {
 .user-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -854,10 +855,6 @@ nav a:hover, nav a.active {
   justify-content: center;
   font-weight: 700;
   font-size: 1.5rem;
-}
-
-.user-info {
-  flex: 1;
 }
 
 .user-name {
@@ -958,6 +955,7 @@ nav a:hover, nav a.active {
   .user-header {
     flex-direction: column;
     text-align: center;
+    align-items: center;
   }
 }
 

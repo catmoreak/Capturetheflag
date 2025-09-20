@@ -572,12 +572,12 @@ const runCipherTool = () => {
   
   cipherResults.value = results.join('\n')
   
-  // Ensure the container can scroll by forcing a reflow
+ 
   nextTick(() => {
     const toolOutput = document.querySelector('.tool-output') as HTMLElement
     if (toolOutput) {
       toolOutput.scrollTop = 0
-      // Force browser to recognize scrollable content
+      
       toolOutput.style.overflowY = 'scroll'
     }
   })
@@ -648,7 +648,7 @@ Use: strings mystery_binary.exe | grep CTF`
   URL.revokeObjectURL(url)
 }
 
-// Removed duplicate definition of initThreeJS
+
 const initThreeJS = () => {
   try {
     if (!threeCanvas.value) {
@@ -692,7 +692,7 @@ const initThreeJS = () => {
     
     
     const t = Math.random()
-    const colorType = Math.floor(Math.random() * 4) // 4 different neon color types
+    const colorType = Math.floor(Math.random() * 4) 
     
     if (colorType === 0) {
       // Light cyan/aqua
