@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   try {
     const { userId, challengeId, points, completionTime } = await readBody(event)
     
-    if (!userId || !challengeId || !points || !completionTime) {
+    if (!userId || challengeId == null || !points || !completionTime) {
       throw createError({
         statusCode: 400,
         statusMessage: 'Missing required fields'

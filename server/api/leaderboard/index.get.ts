@@ -25,16 +25,7 @@ export default defineEventHandler(async (event) => {
       const solvedChallenges = uniqueChallengeIds.size
       const totalChallenges = 6 // Total number of challenges available
       
-      // Debug logging
-      if (user.name === 'helloboss' || user.name === 'hacker_shreu') {
-        console.log(`Debug for ${user.name}:`, {
-          completions: user.completions.length,
-          solvedChallenges,
-          totalChallenges,
-          challengeIds: Array.from(uniqueChallengeIds),
-          totalPoints
-        })
-      }
+
       
       const averageTime = solvedChallenges > 0 
         ? user.completions.reduce((sum: number, completion: any) => sum + completion.completionTime, 0) / solvedChallenges
