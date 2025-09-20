@@ -4,7 +4,7 @@
     <div class="content-overlay">
       <header class="main-header">
         <div class="container">
-          <div class="logo">CTF Challenge</div>
+          <div class="logo">CTF_Platform</div>
           <nav>
             <NuxtLink to="/">Home</NuxtLink>
             <NuxtLink to="/challenges">Challenges</NuxtLink>

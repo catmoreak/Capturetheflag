@@ -46,7 +46,7 @@
         <div class="container">
           <div class="footer-content">
             <div class="footer-section">
-              <h4>CTF Platform</h4>
+              <h4>CTF_Platform</h4>
               <p>Challenge yourself with the ultimate Capture The Flag experience.</p>
             </div>
             <div class="footer-section">
@@ -96,7 +96,7 @@
             </div>
           </div>
           <div class="footer-bottom">
-            <p>&copy; 2025 CTF Platform. All Rights Reserved.</p>
+            <p>&copy; 2025 CTF_Platform. All Rights Reserved.</p>
           </div>
         </div>
       </footer>
@@ -154,7 +154,99 @@ let cursorParticles: THREE.Points;
 let cursorParticleSystem: CursorParticle[] = [];
 const GRID_SIZE = 400;
 
+// Neon cursor variables
+let neonCursor: HTMLElement | null = null;
+let sparkleContainer: HTMLElement | null = null;
+let isFooterHovered = false;
+let sparkleParticles: HTMLElement[] = [];
+
+const setupNeonCursor = () => {
+  // Create neon cursor element
+  neonCursor = document.createElement('div');
+  neonCursor.className = 'neon-cursor';
+  neonCursor.style.position = 'fixed';
+  neonCursor.style.pointerEvents = 'none';
+  neonCursor.style.zIndex = '9999';
+  neonCursor.style.display = 'none';
+  document.body.appendChild(neonCursor);
+
+  // Create sparkle container
+  sparkleContainer = document.createElement('div');
+  sparkleContainer.style.position = 'fixed';
+  sparkleContainer.style.pointerEvents = 'none';
+  sparkleContainer.style.zIndex = '9998';
+  sparkleContainer.style.top = '0';
+  sparkleContainer.style.left = '0';
+  sparkleContainer.style.width = '100%';
+  sparkleContainer.style.height = '100%';
+  document.body.appendChild(sparkleContainer);
+
+  // Add mouse move listener
+  document.addEventListener('mousemove', handleMouseMove);
+
+  // Add footer hover listeners
+  const footer = document.querySelector('.main-footer');
+  if (footer) {
+    footer.addEventListener('mouseenter', () => {
+      isFooterHovered = true;
+      if (neonCursor) neonCursor.style.display = 'block';
+    });
+    footer.addEventListener('mouseleave', () => {
+      isFooterHovered = false;
+      if (neonCursor) neonCursor.style.display = 'none';
+      // Clear existing sparkles
+      sparkleParticles.forEach(particle => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      });
+      sparkleParticles = [];
+    });
+  }
+};
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isFooterHovered || !neonCursor) return;
+
+  // Update neon cursor position
+  neonCursor.style.left = e.clientX + 'px';
+  neonCursor.style.top = e.clientY + 'px';
+
+  // Create sparkle particles occasionally
+  if (Math.random() < 0.3) { // 30% chance to create sparkle
+    createSparkle(e.clientX, e.clientY);
+  }
+};
+
+const createSparkle = (x: number, y: number) => {
+  if (!sparkleContainer) return;
+
+  const sparkle = document.createElement('div');
+  sparkle.className = 'sparkle-particle';
+
+  // Random position around cursor
+  const offsetX = (Math.random() - 0.5) * 40;
+  const offsetY = (Math.random() - 0.5) * 40;
+
+  sparkle.style.left = (x + offsetX) + 'px';
+  sparkle.style.top = (y + offsetY) + 'px';
+
+  sparkleContainer.appendChild(sparkle);
+  sparkleParticles.push(sparkle);
+
+  // Remove sparkle after animation
+  setTimeout(() => {
+    if (sparkle.parentNode) {
+      sparkle.parentNode.removeChild(sparkle);
+    }
+    sparkleParticles = sparkleParticles.filter(p => p !== sparkle);
+  }, 1000);
+};
+
 onMounted(() => {
+  // Neon cursor setup
+  setupNeonCursor();
+
   if (!threeCanvas.value) return
 
   
@@ -234,6 +326,22 @@ onUnmounted(() => {
     window.removeEventListener('resize', onWindowResize);
     window.removeEventListener('mousemove', onMouseMove);
     contentOverlay.value?.removeEventListener('scroll', handleScroll);
+
+    // Cleanup neon cursor
+    document.removeEventListener('mousemove', handleMouseMove);
+    if (neonCursor && neonCursor.parentNode) {
+      neonCursor.parentNode.removeChild(neonCursor);
+    }
+    if (sparkleContainer && sparkleContainer.parentNode) {
+      sparkleContainer.parentNode.removeChild(sparkleContainer);
+    }
+    // Clear any remaining sparkles
+    sparkleParticles.forEach(particle => {
+      if (particle.parentNode) {
+        particle.parentNode.removeChild(particle);
+      }
+    });
+    sparkleParticles = [];
 });
 
 function createParticleSystem(color: number, count: number, size: number, speed: number) {
@@ -716,6 +824,7 @@ nav a:hover {
   font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  font-family: 'Share Tech Mono', monospace;
 }
 
 .footer-section p {
@@ -771,6 +880,83 @@ nav a:hover {
 .social-icons a:hover {
   color: var(--primary-color);
   transform: scale(1.1);
+}
+
+/* Neon Sparkle Cursor Effect */
+.neon-cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: screen;
+}
+
+.neon-cursor::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, var(--primary-color) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: neon-pulse 1.5s ease-in-out infinite;
+}
+
+.neon-cursor::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, var(--primary-color) 0%, transparent 90%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: neon-glow 2s ease-in-out infinite;
+}
+
+.sparkle-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkle-fade 1s ease-out forwards;
+}
+
+@keyframes neon-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes neon-glow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+@keyframes sparkle-fade {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0) rotate(180deg);
+  }
+}
+
+.main-footer:hover {
+  cursor: none;
 }
 </style>
 
