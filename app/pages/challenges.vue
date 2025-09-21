@@ -264,6 +264,19 @@ console.log('Hidden flag:', secret);
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  title: 'Challenges - CTF_Platform'
+})
+
+useHead({
+  meta: [
+    { property: 'og:title', content: 'Challenges - CTF_Platform' },
+    { property: 'og:description', content: 'Explore diverse challenges from web and mobile to reverse engineering and cryptography on CTF_Platform.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://capturetheflag.vercel.app/challenges' }
+  ]
+})
+
 import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import * as THREE from 'three'
 const threeCanvas = ref<HTMLCanvasElement | null>(null)

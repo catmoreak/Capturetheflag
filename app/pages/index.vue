@@ -105,6 +105,19 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  title: 'Home - CTF_Platform'
+})
+
+useHead({
+  meta: [
+    { property: 'og:title', content: 'Home - CTF_Platform' },
+    { property: 'og:description', content: 'Welcome to CTF_Platform - Challenge yourself with the ultimate Capture The Flag experience.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://capturetheflag.vercel.app/' }
+  ]
+})
+
 import { onMounted, onUnmounted, ref } from 'vue'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';

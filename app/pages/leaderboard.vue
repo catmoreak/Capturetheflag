@@ -168,6 +168,19 @@
 import { onMounted, onUnmounted, ref, computed } from 'vue'
 import * as THREE from 'three'
 
+definePageMeta({
+  title: 'Leaderboard - CTF_Platform'
+})
+
+useHead({
+  meta: [
+    { property: 'og:title', content: 'Leaderboard - CTF_Platform' },
+    { property: 'og:description', content: 'Track your progress and compete with fellow hackers on the CTF_Platform leaderboard.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://capturetheflag.vercel.app/leaderboard' }
+  ]
+})
+
 let scene: THREE.Scene
   let camera: THREE.PerspectiveCamera
   let renderer: THREE.WebGLRenderer
