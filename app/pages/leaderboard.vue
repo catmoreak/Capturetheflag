@@ -173,6 +173,7 @@ definePageMeta({
 })
 
 useHead({
+  title: 'Leaderboard - CTF_Platform',
   meta: [
     { property: 'og:title', content: 'Leaderboard - CTF_Platform' },
     { property: 'og:description', content: 'Track your progress and compete with fellow hackers on the CTF_Platform leaderboard.' },

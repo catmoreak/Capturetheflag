@@ -269,6 +269,7 @@ definePageMeta({
 })
 
 useHead({
+  title: 'Challenges - CTF_Platform',
   meta: [
     { property: 'og:title', content: 'Challenges - CTF_Platform' },
     { property: 'og:description', content: 'Explore diverse challenges from web and mobile to reverse engineering and cryptography on CTF_Platform.' },

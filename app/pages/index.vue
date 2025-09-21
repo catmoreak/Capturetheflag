@@ -110,6 +110,7 @@ definePageMeta({
 })
 
 useHead({
+  title: 'Home - CTF_Platform',
   meta: [
     { property: 'og:title', content: 'Home - CTF_Platform' },
     { property: 'og:description', content: 'Welcome to CTF_Platform - Challenge yourself with the ultimate Capture The Flag experience.' },
