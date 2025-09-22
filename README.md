@@ -173,8 +173,7 @@ Points and timing calculations can be adjusted in the challenge completion API e
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
+This project is licensed under the MIT License 
 ## 🙏 Acknowledgments
 
 - Built with [Nuxt.js](https://nuxt.com/)
