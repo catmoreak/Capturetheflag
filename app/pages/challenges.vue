@@ -144,7 +144,7 @@ function _0x1234(){
 var secret = atob(_0x1234()[0]);
 console.log('Hidden flag:', secret);
                   </pre>
-                  <p class="code-hint">Open your browser console and analyze this JavaScript code...</p>
+                  <!-- <p class="code-hint">Open your browser console and analyze this JavaScript code...</p> -->
                 </div>
               </div>
 
