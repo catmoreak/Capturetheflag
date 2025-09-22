@@ -418,19 +418,19 @@ const registerUser = async () => {
 
 const restoreUserProgress = async (userId: string) => {
   try {
-    console.log('🔍 Starting progress restoration for user:', userId)
+    // console.log('🔍 Starting progress restoration for user:', userId)
     const response = await $fetch(`/api/users/progress?userId=${userId}`) as any
-    console.log('📡 API response:', response)
+    // console.log('📡 API response:', response)
     
     if (response.success && response.completions.length > 0) {
-      console.log('✅ Found completions:', response.completions.length)
+      // console.log('✅ Found completions:', response.completions.length)
       
      
       const completedChallengeIds = new Set<number>()
       let restoredScore = 0
       
       response.completions.forEach((completion: any) => {
-        console.log('📝 Processing completion:', completion)
+        // console.log('📝 Processing completion:', completion)
         completedChallengeIds.add(completion.challengeId)
         restoredScore += completion.points
       })
@@ -450,7 +450,7 @@ const restoreUserProgress = async (userId: string) => {
       
       for (let i = 0; i < challenges.length; i++) {
         const challenge = challenges[i]
-        console.log(`🔍 Checking challenge ${i}: ${challenge?.title} (ID: ${challenge?.id})`)
+        // console.log(`🔍 Checking challenge ${i}: ${challenge?.title} (ID: ${challenge?.id})`)
         
         if (challenge && !completedChallengeIds.has(challenge.id)) {
           // console.log(`🎯 Found first uncompleted challenge at index ${i}`)
@@ -469,7 +469,7 @@ const restoreUserProgress = async (userId: string) => {
         nextChallengeIndex = challenges.length - 1
       }
       
-      console.log('📊 Setting current challenge index to:', nextChallengeIndex)
+      // console.log('📊 Setting current challenge index to:', nextChallengeIndex)
       currentChallengeIndex.value = nextChallengeIndex
       
       
@@ -833,7 +833,7 @@ const handleResize = () => {
 
 
 onMounted(async () => {
-  console.log('🚀 Component mounted, starting initialization...')
+  // console.log('🚀 Component mounted, starting initialization...')
   
  
   if (typeof window === 'undefined') {
@@ -848,7 +848,7 @@ onMounted(async () => {
   if (savedUser) {
     try {
       currentUser.value = JSON.parse(savedUser)
-      console.log('👤 Current user set to:', currentUser.value)
+      // console.log('👤 Current user set to:', currentUser.value)
       challengeStartTime.value = Date.now()
       
       // console.log('🔄 About to restore user progress...')
@@ -867,7 +867,7 @@ onMounted(async () => {
       showNameModal.value = true
     }
   } else {
-    console.log('❌ No saved user found, showing name modal')
+    // console.log('❌ No saved user found, showing name modal')
     showNameModal.value = true
   }
   
