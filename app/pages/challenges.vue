@@ -843,7 +843,7 @@ onMounted(async () => {
   
   // Check for existing user session
   const savedUser = localStorage.getItem('ctf-user')
-  console.log('💾 Saved user from localStorage:', savedUser)
+  // console.log('💾 Saved user from localStorage:', savedUser)
   
   if (savedUser) {
     try {
@@ -851,16 +851,16 @@ onMounted(async () => {
       console.log('👤 Current user set to:', currentUser.value)
       challengeStartTime.value = Date.now()
       
-      console.log('🔄 About to restore user progress...')
-      console.log('📊 Current challenge index BEFORE restoration:', currentChallengeIndex.value)
-      console.log('🎯 Solved challenges BEFORE restoration:', Array.from(solvedChallenges.value))
+      // console.log('🔄 About to restore user progress...')
+      // console.log('📊 Current challenge index BEFORE restoration:', currentChallengeIndex.value)
+      // console.log('🎯 Solved challenges BEFORE restoration:', Array.from(solvedChallenges.value))
       
       // Restore user's previous progress
       await restoreUserProgress(currentUser.value.id)
       
-      console.log('✅ Progress restoration completed')
-      console.log('📊 Current challenge index AFTER restoration:', currentChallengeIndex.value)
-      console.log('🎯 Solved challenges AFTER restoration:', Array.from(solvedChallenges.value))
+      // console.log('✅ Progress restoration completed')
+      // console.log('📊 Current challenge index AFTER restoration:', currentChallengeIndex.value)
+      // console.log('🎯 Solved challenges AFTER restoration:', Array.from(solvedChallenges.value))
     } catch (error) {
       console.error('Error parsing saved user:', error)
       localStorage.removeItem('ctf-user')
