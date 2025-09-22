@@ -833,6 +833,8 @@ const handleResize = () => {
 
 
 onMounted(async () => {
+  const route = useRoute()
+  if (process.dev) console.log('Search params:', route.query)
   // console.log('🚀 Component mounted, starting initialization...')
   
  
