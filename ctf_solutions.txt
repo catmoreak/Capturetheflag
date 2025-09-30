@@ -1,0 +1,25 @@
+CTF Challenge Solutions:
+
+1. BASIC_RECON.exe
+   Flag: CTF{view_source_is_basic_recon}
+
+2. CAESAR_DECRYPT.exe
+   Flag: CTF{caesar_cipher_is_easy}
+
+3. WEB_EXPLOIT.exe
+   Flag: CTF{sql_injection_admin_bypass}
+
+4. STEGANOGRAPHY.exe
+   Flag: CTF{hidden_pixels_tell_secrets}
+
+5. JS_OBFUSCATION.exe
+   Flag: CTF{javascript_secrets_decoded}
+
+6. FORENSICS_ANALYSIS.exe
+   Flag: CTF{forensics_investigation_complete}
+
+7. REVERSE_ENGINEERING.exe
+   Flag: CTF{assembly_xor_key_extracted}
+
+8. ADVANCED_CRYPTO.exe
+   Flag: CTF{rsa_weak_primes_factored}

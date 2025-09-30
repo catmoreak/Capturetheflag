@@ -127,13 +127,13 @@
 
           <!-- User Stats Section -->
           <div v-if="currentUser && leaderboard.length > 0" class="user-stats-section">
-            <div class="user-stats-card">
-              <h3>Your Performance</h3>
+            <div class="user-stats-card card-3d holographic-3d plasma-energy multidimensional">
+              <h3 class="text-3d-animated neon-glow-3d" data-text="Your Performance">Your Performance</h3>
               <div class="user-header" >
-                <div class="user-avatar">{{ currentUser.name.charAt(0).toUpperCase() }}</div>
+                <div class="user-avatar pulse-3d quantum-entangled">{{ currentUser.name.charAt(0).toUpperCase() }}</div>
                 <div class="user-info">
-                  <div class="user-name">{{ currentUser.name }}</div>
-                  <div class="user-rank">Rank #{{ userRank }}</div>
+                  <div class="user-name text-3d liquid-metal">{{ currentUser.name }}</div>
+                  <div class="user-rank temporal-distortion">Rank #{{ userRank }}</div>
                 </div>
               </div>
               <div class="user-stats-grid">
