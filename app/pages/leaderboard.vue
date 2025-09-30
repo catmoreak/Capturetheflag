@@ -268,7 +268,12 @@ let scene: THREE.Scene
     return new Date(dateString).toLocaleDateString()
   }
 
-  
+    function createParticleSystem(color: number, count: number, size: number, speed: number) {
+    const geom = new THREE.BufferGeometry()
+    const positions = new Float32Array(count * 3)
+    const velocities = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
+      positions.set([0,0,0], i * 3)
       const v = new THREE.Vector3(
         (Math.random() - 0.5) * speed,
         Math.random() * speed * 1.5,
