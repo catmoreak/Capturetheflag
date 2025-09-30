@@ -211,7 +211,30 @@ console.log('Hidden flag:', secret);
       </div>
 
       
-      
+      <div class="completion-overlay" v-if="showCompletionScreen">
+        <div class="completion-window">
+          <div class="completion-header">
+            <h2>{{ completionMessage }}</h2>
+          </div>
+          <div class="completion-stats">
+            <div class="stat">
+              <span class="label">Points Earned:</span>
+              <span class="value">+{{ lastEarnedPoints }}</span>
+            </div>
+            <div class="stat">
+              <span class="label">Total Score:</span>
+              <span class="value">{{ totalScore }}</span>
+            </div>
+            <div class="stat">
+              <span class="label">Progress:</span>
+              <span class="value">{{ solvedCount }}/6</span>
+            </div>
+          </div>
+          <button @click="proceedToNext" class="proceed-btn">
+            {{ allCompleted ? 'MISSION COMPLETE' : 'CONTINUE' }}
+          </button>
+        </div>
+      </div>
       
       
       <div class="mission-complete" v-if="allCompleted && !showCompletionScreen">
