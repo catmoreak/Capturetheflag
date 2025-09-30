@@ -5,7 +5,7 @@ A modern, cyberpunk-themed Capture the Flag platform built with Nuxt.js, featuri
 ## 🚀 Features
 
 - **Cyberpunk UI**: Immersive 3D background with Three.js and futuristic design
-- **Challenge System**: 6 diverse CTF challenges including web exploitation, steganography, forensics, and cryptography
+- **Challenge System**: 8 diverse CTF challenges including web exploitation, steganography, forensics, and cryptography
 - **User Management**: Registration system with unique callsigns
 - **Progress Tracking**: Real-time completion tracking with points and timing
 - **Leaderboard**: Dynamic ranking system for competitive play
@@ -82,7 +82,7 @@ A modern, cyberpunk-themed Capture the Flag platform built with Nuxt.js, featuri
 
 ## 🎯 Challenges
 
-The platform includes 6 CTF challenges:
+The platform includes 8 CTF challenges:
 
 1. **BASIC_RECON** - Web reconnaissance basics
 2. **CAESAR_DECRYPT** - Classical cryptography
@@ -90,6 +90,8 @@ The platform includes 6 CTF challenges:
 4. **STEGANOGRAPHY** - Hidden data extraction
 5. **JS_OBFUSCATION** - JavaScript reverse engineering
 6. **FORENSICS_ANALYSIS** - Digital forensics
+7. **REVERSE_ENGINEERING** - Binary reversing and analysis challenges
+8. **NETWORK_PWN** - Network/service exploitation and pwn-style tasks
 
 ## 🔧 API Endpoints
 
