@@ -435,12 +435,7 @@ let scene: THREE.Scene
       window.addEventListener('mousemove', onMouseMove)
       animate()
     }
-    await refreshLeaderboard()
-  })
-  onUnmounted(() => {
-    window.removeEventListener('resize', onWindowResize)
-    window.removeEventListener('mousemove', onMouseMove)
-  })
+   
 
 
 </script>
