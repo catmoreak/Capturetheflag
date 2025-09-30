@@ -115,7 +115,7 @@
                       </div>
                     </td>
                     <td class="score-cell">{{ entry.totalPoints.toLocaleString() }}</td>
-                    <td class="solved-cell">{{ entry.solvedChallenges }}/6</td>
+                    <td class="solved-cell">{{ entry.solvedChallenges }}/8</td>
                     <td class="time-cell">{{ entry.averageTime }}s</td>
                     <td class="time-cell">{{ formatTime(entry.totalTime) }}</td>
                     <td class="date-cell">{{ formatDate(entry.joinedAt) }}</td>

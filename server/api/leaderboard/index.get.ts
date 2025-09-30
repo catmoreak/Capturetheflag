@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   
       const uniqueChallengeIds = new Set(user.completions.map((c: any) => c.challengeId))
       const solvedChallenges = uniqueChallengeIds.size
-      const totalChallenges = 6 // Total number of challenges available
+      const totalChallenges = 8 // Total number of challenges available
       
 
       

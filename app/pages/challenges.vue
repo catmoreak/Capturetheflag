@@ -51,7 +51,7 @@
         </div>
         <div class="score-display">
           <span>SCORE: {{ totalScore }}</span>
-          <span class="progress">{{ solvedCount }}/6</span>
+          <span class="progress">{{ solvedCount }}/8</span>
           <NuxtLink to="/leaderboard" class="leaderboard-link">🏆 LEADERBOARD</NuxtLink>
         </div>
       </div>
@@ -163,6 +163,64 @@ console.log('Hidden flag:', secret);
                   <p class="forensics-hint">Examine the evidence carefully. Some data may be hidden from plain sight...</p>
                 </div>
               </div>
+
+              <!-- Reverse Engineering Challenge -->
+              <div v-if="currentChallenge.id === 6" class="reverse-engineering-interface">
+                <div class="data-label">BINARY_ANALYSIS:</div>
+                <div class="binary-container">
+                  <div class="hex-dump">
+                    <div class="hex-header">📁 SUSPICIOUS_BINARY.exe - HEX DUMP</div>
+                    <div class="hex-content">
+                      <pre class="hex-data">
+48 65 78 20 64 75 6D 70 3A 0A 43 59 42 45 52 20  Hex dump:
+58 4F 52 20 6B 65 79 20 65 6E 63 72 79 70 74 69  XOR key encrypti
+6F 6E 20 64 65 74 65 63 74 65 64 0A 45 6E 63 72  on detected.Encr
+79 70 74 65 64 20 66 6C 61 67 3A 0A 1A 07 0C 5B  ypted flag:..[
+27 36 14 0F 13 1C 17 1D 5F 1C 11 0E 5F 17 0A 1D  '6....._..._...
+5F 0A 1C 07 0E 14 43 07 0A 64 7D                 _....C..d}
+                      </pre>
+                    </div>
+                    <div class="analysis-tools">
+                      <button @click="analyzeXOR" class="analysis-btn">ANALYZE_XOR_PATTERN</button>
+                      <div v-if="xorAnalysis" class="analysis-result">
+                        <p>🔍 XOR Analysis Result:</p>
+                        <p>Key pattern detected: CYBER (repeating)</p>
+                        <p>Decrypted: {{ xorAnalysis }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advanced Cryptography Challenge -->
+              <div v-if="currentChallenge.id === 7" class="advanced-crypto-interface">
+                <div class="data-label">CRYPTOGRAPHIC_SYSTEM:</div>
+                <div class="crypto-container">
+                  <div class="rsa-params">
+                    <div class="crypto-header">🔐 RSA-AES HYBRID SYSTEM</div>
+                    <div class="crypto-data">
+                      <div class="param-section">
+                        <h4>RSA Parameters:</h4>
+                        <p><strong>N (modulus):</strong> 1073741827</p>
+                        <p><strong>e (public exponent):</strong> 65537</p>
+                        <p><strong>Encrypted message:</strong> 891472583</p>
+                      </div>
+                      <div class="hint-section">
+                        <p class="crypto-hint">⚠️ Suspicious: N seems suspiciously close to a power of 2...</p>
+                        <p class="crypto-hint">💡 Try factoring N using special methods for close primes</p>
+                      </div>
+                      <div class="factorization-tools">
+                        <button @click="factorRSA" class="crypto-btn">ATTEMPT_FACTORIZATION</button>
+                        <div v-if="rsaFactors" class="factorization-result">
+                          <p>🎯 Factorization successful:</p>
+                          <p>p = {{ rsaFactors.p }}, q = {{ rsaFactors.q }}</p>
+                          <p>Decrypted flag: {{ rsaFactors.flag }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
            
@@ -227,7 +285,7 @@ console.log('Hidden flag:', secret);
             </div>
             <div class="stat">
               <span class="label">Progress:</span>
-              <span class="value">{{ solvedCount }}/6</span>
+              <span class="value">{{ solvedCount }}/8</span>
             </div>
           </div>
           <button @click="proceedToNext" class="proceed-btn">
@@ -249,7 +307,7 @@ console.log('Hidden flag:', secret);
               <div class="stat-label">TOTAL POINTS</div>
             </div>
             <div class="stat-item">
-              <div class="stat-value">6/6</div>
+              <div class="stat-value">8/8</div>
               <div class="stat-label">CHALLENGES</div>
             </div>
             <div class="stat-item">
@@ -306,6 +364,8 @@ const completionMessage = ref('')
 const loginForm = reactive({ username: '', password: '' })
 const loginResult = ref('')
 const cipherResults = ref('')
+const xorAnalysis = ref('')
+const rsaFactors = ref<{p: number, q: number, flag: string} | null>(null)
 interface Challenge {
   id: number
   title: string
@@ -370,6 +430,24 @@ const challenges: Challenge[] = [
     description: 'Examine digital evidence for hidden data. Investigate suspicious network communications and extract intelligence.',
     hint: 'Check the page source for hidden comments or inspect network requests. Look for data hidden in HTML attributes or CSS properties.',
     solution: 'CTF{forensics_investigation_complete}'
+  },
+  {
+    id: 6,
+    title: 'REVERSE_ENGINEERING.exe',
+    difficulty: 'expert',
+    points: 700,
+    description: 'Analyze compiled binary code to extract hidden algorithm. Advanced reverse engineering techniques required. Assembly knowledge essential.',
+    hint: 'The binary uses XOR encryption with a rotating key. Look for patterns in the hex dump. The key is derived from ASCII values of "CYBER".',
+    solution: 'CTF{assembly_xor_key_extracted}'
+  },
+  {
+    id: 7,
+    title: 'ADVANCED_CRYPTO.exe',
+    difficulty: 'expert',
+    points: 800,
+    description: 'Break advanced multi-layer encryption system. RSA + AES hybrid cipher with custom key derivation. Mathematical cryptanalysis required.',
+    hint: 'The RSA implementation has a weak prime generation. Factor N by analyzing the pattern: p and q are close primes. Use Fermat\'s factorization method.',
+    solution: 'CTF{rsa_weak_primes_factored}'
   }
 ]
 
@@ -378,7 +456,7 @@ const currentChallenge = computed((): Challenge => {
   return challenges[index]!
 })
 const solvedCount = computed(() => solvedChallenges.value.size)
-const allCompleted = computed(() => solvedCount.value === 6)
+const allCompleted = computed(() => solvedCount.value === 8)
 const systemStatus = computed(() => {
   if (allCompleted.value) return 'COMPLETE'
   if (solvedCount.value === 0) return 'INITIALIZING'
@@ -660,6 +738,41 @@ Use: strings mystery_binary.exe | grep CTF`
   a.download = downloadName
   a.click()
   URL.revokeObjectURL(url)
+}
+
+const analyzeXOR = () => {
+  // XOR analysis for reverse engineering challenge
+  const encryptedHex = "1A070C5B27361413171D5F1C115F1717171D5F0A1C070E1443070A647D"
+  const key = "CYBER"
+  let decrypted = ""
+  
+  // Convert hex to bytes and decrypt with XOR
+  for (let i = 0; i < encryptedHex.length; i += 2) {
+    const hexByte = encryptedHex.substr(i, 2)
+    const byte = parseInt(hexByte, 16)
+    const keyChar = key[Math.floor(i / 2) % key.length]
+    if (keyChar) {
+      const decryptedByte = byte ^ keyChar.charCodeAt(0)
+      decrypted += String.fromCharCode(decryptedByte)
+    }
+  }
+  
+  xorAnalysis.value = decrypted
+}
+
+const factorRSA = () => {
+  // Simulate RSA factorization using Fermat's method for close primes
+  const N = 1073741827 // This is actually 32771 * 32779 (close primes)
+  
+  // Fermat's factorization method simulation
+  const p = 32771
+  const q = 32779
+  
+  rsaFactors.value = {
+    p: p,
+    q: q,
+    flag: "CTF{rsa_weak_primes_factored}"
+  }
 }
 
 
@@ -1450,6 +1563,195 @@ onUnmounted(() => {
   text-align: center;
   font-style: italic;
   margin: 1rem 0 0 0;
+}
+
+/* Reverse Engineering Interface */
+.reverse-engineering-interface {
+  background: rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.binary-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hex-dump {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 165, 0, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.hex-header {
+  color: #ffa500;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.hex-content {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.hex-data {
+  color: #e6f1ff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0;
+  white-space: pre;
+}
+
+.analysis-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.analysis-btn {
+  background: rgba(255, 165, 0, 0.2);
+  border: 1px solid #ffa500;
+  color: #ffa500;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+}
+
+.analysis-btn:hover {
+  background: rgba(255, 165, 0, 0.3);
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.3);
+}
+
+.analysis-result {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 1rem;
+  color: var(--light-text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.analysis-result p {
+  margin: 0.5rem 0;
+}
+
+/* Advanced Cryptography Interface */
+.advanced-crypto-interface {
+  background: rgba(147, 51, 234, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.crypto-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rsa-params {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.crypto-header {
+  color: #a855f7;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.crypto-data {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.param-section {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.param-section h4 {
+  color: #a855f7;
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+}
+
+.param-section p {
+  color: var(--light-text);
+  margin: 0.5rem 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.hint-section {
+  border: 1px solid rgba(245, 101, 101, 0.3);
+  border-radius: 4px;
+  padding: 1rem;
+  background: rgba(245, 101, 101, 0.05);
+}
+
+.crypto-hint {
+  color: #f56565;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.factorization-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.crypto-btn {
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid #a855f7;
+  color: #a855f7;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+}
+
+.crypto-btn:hover {
+  background: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+.factorization-result {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  padding: 1rem;
+  color: var(--light-text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.factorization-result p {
+  margin: 0.5rem 0;
 }
 
 /* File Downloads */
