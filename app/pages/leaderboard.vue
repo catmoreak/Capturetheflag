@@ -164,9 +164,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from 'vue'
-import * as THREE from 'three'
 
 definePageMeta({
   title: 'Leaderboard - CTF_Platform'
