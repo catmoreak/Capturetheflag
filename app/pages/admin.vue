@@ -105,6 +105,8 @@ const totalPoints = (user: User) => user.completions.reduce((sum, c) => sum + c.
 <style scoped>
 .admin-green-root {
   min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
   background: linear-gradient(135deg, #0a0a0a 0%, #0f291e 60%, #0a0a0a 100%);
   font-family: 'Share Tech Mono', 'Inter', 'Segoe UI', monospace, sans-serif;
   color: #e0fce0;
