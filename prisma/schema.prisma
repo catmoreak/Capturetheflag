@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,30 +10,177 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum ChallengeStatus {
+  ACTIVE
+  DISABLED
+  MAINTENANCE
+}
+
+enum UserRole {
+  PLAYER
+  ADMIN
+  MODERATOR
+}
+
+enum CategoryType {
+  WEB
+  CRYPTO
+  FORENSICS
+  REVERSING
+  MISC
+  MOBILE
+}
+
+// User model with enhanced features
 model User {
   id        String   @id @default(cuid())
-  name      String   @unique
+  name      String   @unique @db.VarChar(50)
+  email     String?  @unique @db.VarChar(255)
+  avatar    String?  @db.Text
+  role      UserRole @default(PLAYER)
+  isActive  Boolean  @default(true)
+  totalScore Int      @default(0)
+  rank      Int?      // Computed field for leaderboard position
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  completions ChallengeCompletion[]
+  completions     ChallengeCompletion[]
+  submissions     FlagSubmission[]
+  createdChallenges Challenge[] @relation("ChallengeCreator")
 
+  // Indexes
+  @@index([totalScore])
+  @@index([createdAt])
   @@map("users")
 }
 
+// Challenge model - store challenges in database instead of hardcoding
+model Challenge {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique @db.VarChar(200)
+  description String   @db.Text
+  category    CategoryType
+  difficulty  Difficulty
+  points      Int      @default(100)
+  flag        String   @db.VarChar(255) // Hashed flag
+  hint        String?  @db.Text
+  files       Json?    // Store file metadata as JSON
+  status      ChallengeStatus @default(ACTIVE)
+  maxAttempts Int?     // Maximum submission attempts per user
+  timeLimit   Int?     // Time limit in seconds
+  creatorId   String
+  creator     User     @relation("ChallengeCreator", fields: [creatorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  completions ChallengeCompletion[]
+  submissions FlagSubmission[]
+
+  // Indexes
+  @@index([category])
+  @@index([difficulty])
+  @@index([status])
+  @@index([points])
+  @@map("challenges")
+}
+
+// Enhanced completion tracking
 model ChallengeCompletion {
   id            String   @id @default(cuid())
   userId        String
   challengeId   Int
-  points        Int
-  completionTime Int     
+  points        Int      // Points awarded (may differ from base challenge points)
+  completionTime Int     // Time taken in seconds
+  attempts      Int      @default(1) // Number of attempts made
+  hintsUsed     Int      @default(0) // Number of hints used
   completedAt   DateTime @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  // Ensure one completion per user per challenge
+  @@unique([userId, challengeId])
+  @@index([completedAt])
+  @@index([points])
+  @@map("challenge_completions")
+}
+
+// Track all flag submissions for analytics
+model FlagSubmission {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId Int
+  submittedFlag String @db.VarChar(500)
+  isCorrect   Boolean  @default(false)
+  submittedAt DateTime @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([userId, challengeId])
+  @@index([submittedAt])
+  @@index([isCorrect])
+  @@map("flag_submissions")
+}
+
+// Leaderboard snapshots for performance
+model LeaderboardSnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  userName  String   @db.VarChar(50)
+  score     Int
+  rank      Int
+  period    String   // 'daily', 'weekly', 'monthly', 'all-time'
+  createdAt DateTime @default(now())
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Ensure one completion per user per challenge
-  @@unique([userId, challengeId])
-  @@map("challenge_completions")
+  // Indexes
+  @@index([period, rank])
+  @@index([createdAt])
+  @@map("leaderboard_snapshots")
+}
+
+// System settings and configuration
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique @db.VarChar(100)
+  value String @db.Text
+  type  String @default("string") // 'string', 'number', 'boolean', 'json'
+
+  @@map("system_settings")
+}
+
+// Audit log for admin actions
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   @db.VarChar(100)
+  resource  String   @db.VarChar(100)
+  details   Json?
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Indexes
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
