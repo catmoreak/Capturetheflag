@@ -157,7 +157,7 @@
 
       <footer class="main-footer">
         <div class="container">
-          &copy; {{ new Date().getFullYear() }} CTF Challenge. All rights reserved.
+          &copy; {{ new Date().getFullYear() }} © 2025 CTF_Platform. All Rights Reserved.
         </div>
       </footer>
     </div>
